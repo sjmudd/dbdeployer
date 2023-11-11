@@ -2178,6 +2178,34 @@
       "date_added": "2023-10-04 20:36"
     },
     {
+      "name": "mysql-8.0.35-macos13-arm64.tar.gz",
+      "checksum": "MD5:7bc691ddfbfd783d0a3f8bf167344a24",
+      "OS": "Darwin",
+      "arch": "arm64",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.35-macos13-arm64.tar.gz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 183807585,
+      "short_version": "8.0",
+      "version": "8.0.35",
+      "notes": "",
+      "date_added": "2023-11-11 19:23"
+    },
+    {
+      "name": "mysql-8.2.0-macos13-arm64.tar.gz",
+      "checksum": "MD5:c6d8b46d8921d030b28dd0d418862775",
+      "OS": "Darwin",
+      "arch": "arm64",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.2/mysql-8.2.0-macos13-arm64.tar.gz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 183763029,
+      "short_version": "8.2",
+      "version": "8.2.0",
+      "notes": "",
+      "date_added": "2023-11-11 19:23"
+    },
+    {
       "name": "mysql-8.0.34-macos13-x86_64.tar.gz",
       "checksum": "MD5:8b63786c10899ffaa06526772b672e1f",
       "OS": "Darwin",
