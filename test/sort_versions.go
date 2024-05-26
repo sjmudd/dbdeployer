@@ -23,9 +23,9 @@ import (
 )
 
 /*
-	This utility reads a list of versions (format x.x.xx)
-	and sorts them in numerical order, taking into account
-	all three fields, making sure that 5.7.9 comes before 5.7.10.
+This utility reads a list of versions (format x.x.xx)
+and sorts them in numerical order, taking into account
+all three fields, making sure that 5.7.9 comes before 5.7.10.
 */
 func main() {
 
