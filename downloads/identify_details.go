@@ -71,6 +71,12 @@ func GetDetailsFromUrl(url string) (UrlDetails, error) {
 	}
 	fmt.Printf("- arch: %v\n", arch)
 
+	minimal := identifyMinimal(basename)
+	if err != nil {
+		return UrlDetails{}, err
+	}
+	fmt.Printf("- minimal: %v\n", minimal)
+
 	// get the size by querying the url (requires web access)
 	size, err := checkRemoteUrl(url)
 	if err != nil {
@@ -84,12 +90,6 @@ func GetDetailsFromUrl(url string) (UrlDetails, error) {
 		return UrlDetails{}, err
 	}
 	fmt.Printf("- checksum: %v\n", checksum)
-
-	minimal := identifyMinimal(basename)
-	if err != nil {
-		return UrlDetails{}, err
-	}
-	fmt.Printf("- minimal: %v\n", minimal)
 
 	return UrlDetails{
 		OS:           os,
