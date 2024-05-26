@@ -2041,6 +2041,36 @@
     "date_added": "2022-10-30 08:03"
    },
    {
+    "name": "Percona-Server-8.3.0-1-Linux.x86_64.glibc2.17-minimal.tar.gz",
+    "checksum": "MD5:4fa7041c2ced53280936aa56a2d94b56",
+    "OS": "linux",
+    "arch": "x86_64",
+    "url": "https://downloads.percona.com/downloads/Percona-Server-innovative-release/Percona-Server-8.3.0-1/binary/tarball/Percona-Server-8.3.0-1-Linux.x86_64.glibc2.17-minimal.tar.gz",
+    "flavor": "percona",
+    "minimal": true,
+    "size": 153068848,
+    "short_version": "8.3",
+    "version": "8.3.0",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-05-26 11:15"
+   },
+   {
+    "name": "Percona-Server-8.3.0-1-Linux.x86_64.glibc2.17.tar.gz",
+    "checksum": "MD5:8441f96669e919c4af68501bd2e84c96",
+    "OS": "linux",
+    "arch": "x86_64",
+    "url": "https://downloads.percona.com/downloads/Percona-Server-innovative-release/Percona-Server-8.3.0-1/binary/tarball/Percona-Server-8.3.0-1-Linux.x86_64.glibc2.17.tar.gz",
+    "flavor": "percona",
+    "minimal": false,
+    "size": 1521953540,
+    "short_version": "8.3",
+    "version": "8.3.0",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-05-26 11:12"
+   },
+   {
     "name": "mysql-shell-8.0.17-macos10.14-x86-64bit.tar.gz",
     "checksum": "MD5: 0205d6847961404b78cc205fbd24fac4",
     "OS": "Darwin",
