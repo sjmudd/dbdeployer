@@ -646,7 +646,7 @@ func checkRemoteUrl(remoteUrl string) (int64, error) {
 }
 
 // CheckTarballList checks a list of tarballs returning an error
-// if there are duplicate names or OS+arch+Flavor+Version+minimal
+// if there are duplicate names or OS+arch+Flavor+Version+Minimal
 // combinations
 func CheckTarballList(tarballList []TarballDescription) error {
 	uniqueNames := make(map[string]bool)
@@ -664,7 +664,7 @@ func CheckTarballList(tarballList []TarballDescription) error {
 		// Makes sure that we don't have duplicate combinations of OS+arch+Flavor+Version+Minimal in the list
 		_, seen = uniqueCombinations[key]
 		if seen {
-			return fmt.Errorf("tarball with OS %s-%s, flavor %s, version %s, and minimal %v listed more than once",
+			return fmt.Errorf("tarball with OS %s-%s, flavor %s, version %s and minimal %v listed more than once",
 				tb.OperatingSystem, tb.Arch, tb.Flavor, tb.Version, tb.Minimal)
 		}
 		uniqueCombinations[key] = true
