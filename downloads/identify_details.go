@@ -85,16 +85,28 @@ func GetDetailsFromUrl(url string) (UrlDetails, error) {
 	}
 	fmt.Printf("- checksum: %v\n", checksum)
 
+	minimal := identifyMinimal(basename)
+	if err != nil {
+		return UrlDetails{}, err
+	}
+	fmt.Printf("- minimal: %v\n", minimal)
+
 	return UrlDetails{
 		OS:           os,
 		Architecture: arch,
 		Checksum:     checksum,
-		Minimal:      false, // hard-coded atm
+		Minimal:      minimal,
 		ShortVersion: shortVersion,
 		Version:      version,
 		Flavour:      flavour,
 		Size:         size,
 	}, nil
+}
+
+// identify if this is a minimal image
+func identifyMinimal(basename string) bool {
+	// mysql and Percona-Server have this in the filename
+	return strings.Contains(basename, "minimal")
 }
 
 // identifyFlavour identifies the flavour based on the basename
@@ -107,6 +119,7 @@ func identifyFlavour(basename string) (string, error) {
 		{"^mysql-8", "mysql"},
 		{"^mysql-cluster-8", "ndb"},
 		{"^mysql-shell-", "shell"},
+		{"^Percona-Server-", "percona"},
 	}
 
 	for _, p := range patterns {
@@ -153,7 +166,7 @@ func identifyOS(basename string) (string, error) {
 		pattern string
 		os      string
 	}{
-		{"linux", "linux"},
+		{"[Ll]inux", "linux"},
 		{"macos", "Darwin"},
 	}
 
