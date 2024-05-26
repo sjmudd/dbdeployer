@@ -24,7 +24,7 @@ stdout 'unpack          unpack a tarball into the binary directory'
 stdout 'update          Gets dbdeployer newest version'
 stdout 'usage           Shows usage of installed sandboxes'
 stdout 'use             uses a sandbox'
-stdout 'versions        List available versions'
+stdout 'versions        List versions downloaded locally'
 ! stderr .
 
 # downloads
