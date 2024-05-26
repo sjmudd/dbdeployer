@@ -43,7 +43,7 @@ type UrlDetails struct {
 func GetDetailsFromUrl(url string) (UrlDetails, error) {
 	// FIXME(sm): not sure if this is the right/best way to process a URL but it seems to work.
 	basename := path.Base(url)
-	fmt.Printf("WARNING: GetDetailsFromUrl may take some time as the url file has to be downloaded to determine the checksum\n")
+	fmt.Printf("WARNING: add-url may take some time as the url file has to be downloaded to determine the checksum\n")
 	fmt.Printf("- basename: %v\n", basename)
 
 	flavour, err := identifyFlavour(basename)
