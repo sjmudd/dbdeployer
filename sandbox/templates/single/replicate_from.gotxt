@@ -69,8 +69,8 @@ then
     exit 1
 fi
 
-master_server_id=$($master_use_script -BN -e 'select @@server_id')
-slave_server_id=$($SBDIR/use -BN -e 'select @@server_id')
+master_server_id=$($master_use_script -BN -e 'SELECT @@server_id')
+slave_server_id=$($SBDIR/use -BN -e 'SELECT @@server_id')
 
 if [ "$master_server_id" == "$slave_server_id" ]
 then
@@ -101,8 +101,8 @@ fi
 
 if [ -n "$can_use_gtid" ]
 then
-    master_server_uuid=$($master_use_script -BN -e 'select @@server_uuid')
-    slave_server_uuid=$($SBDIR/use -BN -e 'select @@server_uuid')
+    master_server_uuid=$($master_use_script -BN -e 'SELECT @@server_uuid')
+    slave_server_uuid=$($SBDIR/use -BN -e 'SELECT @@server_uuid')
 
     if [ "$master_server_uuid" == "$slave_server_uuid" ]
     then
@@ -113,8 +113,8 @@ then
         exit 1
     fi
 
-    master_using_gtid=$($master_use_script -BN -e "select @@gtid_mode"| grep '^ON$')
-    slave_using_gtid=$($SBDIR/use -BN -e "select @@gtid_mode"| grep '^ON$')
+    master_using_gtid=$($master_use_script -BN -e "SELECT @@gtid_mode"| grep '^ON$')
+    slave_using_gtid=$($SBDIR/use -BN -e "SELECT @@gtid_mode"| grep '^ON$')
     if [ -n "$master_using_gtid" ]
     then
         if [ -n "$slave_using_gtid" ]
@@ -224,7 +224,7 @@ fi
 # If master is 8.0, the slave must be at least 8.0
 if [ "$master_short_version" == "8.0" ]
 then
-    connection_string="$connection_string, GET_MASTER_PUBLIC_KEY=1"
+    connection_string="$connection_string, {{.GetSourcePublicKey}}=1"
 fi
 
 echo "Connecting to $master_path"
@@ -236,12 +236,12 @@ if [ -f clone_replication.sql ]
 then
     rm -f clone_replication.sql
 fi
-$SBDIR/use -v -e 'start slave'
-$SBDIR/use -v -e 'SHOW SLAVE STATUS\G' | grep "\(Running:\|Master_Log_Pos\|\<Master_Log_File\|Retrieved\|Executed\|Auto_Position\)"
+$SBDIR/use -v -e '{{.StartReplicaCmd}}'
+$SBDIR/use -v -e '{{.ShowReplicaStatusCmd}}\G' | grep "\(Running:\|Master_Log_Pos\|\<Master_Log_File\|Retrieved\|Executed\|Auto_Position\)"
 date > $active_replication
 echo "Connected to $master_path" >> $active_replication
 echo "#!{{.ShellPath}}" > $remove_replication
-echo "$SBDIR/use -v -e 'stop slave; reset slave'" >> $remove_replication
+echo "$SBDIR/use -v -e '{{.StopReplicaCmd}}; {{.ResetReplicaCmd}}'" >> $remove_replication
 echo "rm -f $active_replication" >> $remove_replication
 chmod +x $remove_replication
 

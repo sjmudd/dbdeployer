@@ -29,7 +29,7 @@ MASTER_RECS=$($MASTER -BN -e 'select count(*) from test.t1')
 
 master_status=master_status$$
 slave_status=slave_status$$
-$MASTER -e 'show master status\G' > $master_status
+$MASTER -e '{{.ShowBinaryLogStatusCmd}}\G' > $master_status
 master_binlog=$(grep 'File:' $master_status | awk '{print $2}' )
 master_pos=$(grep 'Position:' $master_status | awk '{print $2}' )
 echo "# {{.MasterLabel}} log: $master_binlog - Position: $master_pos - Rows: $MASTER_RECS"

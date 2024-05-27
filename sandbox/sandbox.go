@@ -350,6 +350,7 @@ func sbError(reason, format string, args ...interface{}) error {
 }
 
 func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
+	fmt.Printf("createSingleSandbox: %+v\n", sandboxDef)
 
 	var sandboxDir string
 	if sandboxDef.SBType == "" {

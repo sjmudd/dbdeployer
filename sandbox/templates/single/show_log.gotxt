@@ -35,13 +35,13 @@ case $log in
         target=$SBDIR/data/msandbox.err
         ;;
     gen)
-        target=$($SBDIR/use -BN -e "show variables like 'general_log_file'" | awk '{print $2}')
+        target=$($SBDIR/use -BN -e "SHOW VARIABLES LIKE 'general_log_file'" | awk '{print $2}')
         ;;
     slow)
         target=$SBDIR/data/slow_log.data
         ;;
     *)
-        target=$($SBDIR/use -BN -e "show variables like '$log'" | awk '{print $2}')
+        target=$($SBDIR/use -BN -e "SHOW VARIABLES LIKE '$log'" | awk '{print $2}')
         ;;
 esac
 

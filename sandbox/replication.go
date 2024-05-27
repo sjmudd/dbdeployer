@@ -23,6 +23,7 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
+	"github.com/datacharmer/dbdeployer/convert"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/dustin/go-humanize/english"
@@ -103,6 +104,7 @@ func computeBaseport(proposed int) int {
 }
 
 func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+	fmt.Printf("CreateMasterSlaveReplication\n")
 
 	var execLists []concurrent.ExecutionList
 
@@ -161,6 +163,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if err != nil {
 		return err
 	}
+	fmt.Printf("CreateMasterSlaveReplication: about to mkdir %v\n", sandboxDef.SandboxDir)
 
 	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
 	if err != nil {
@@ -177,20 +180,23 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	changeMasterExtra := ""
 	masterAutoPosition := ""
 	if sandboxDef.GtidOptions != "" {
-		masterAutoPosition += ", MASTER_AUTO_POSITION=1"
-		logger.Printf("Adding MASTER_AUTO_POSITION to slaves setup\n")
+		name := convert.OldValue(sandboxDef.Version, "SOURCE_AUTO_POSITION")
+		masterAutoPosition += fmt.Sprintf(", %v=1", name)
+		logger.Printf("Adding %v to replica setup\n", name)
 	}
-	// 8.0.11
-	// isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
-	isMinimumNativeAuthPlugin, err := common.HasCapability(sandboxDef.Flavor, common.NativeAuth, sandboxDef.Version)
+
+	hasNativeAuthPlugin, err := common.HasCapability(sandboxDef.Flavor, common.NativeAuth, sandboxDef.Version)
 	if err != nil {
 		return err
 	}
-	if isMinimumNativeAuthPlugin {
+	if hasNativeAuthPlugin {
+		name := convert.OldValue(sandboxDef.Version, "GET_SOURCE_PUBLIC_KEY")
+
 		if !sandboxDef.NativeAuthPlugin {
-			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, "GET_MASTER_PUBLIC_KEY=1")
+			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, fmt.Sprintf("%v=1", name))
 		}
 	}
+
 	slaves := nodes - 1
 	masterAbbr := defaults.Defaults().MasterAbbr
 	masterLabel := defaults.Defaults().MasterName
@@ -200,22 +206,29 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 
 	changeMasterExtra = setChangeMasterProperties(changeMasterExtra, sandboxDef.ChangeMasterOptions, logger)
 	var data = common.StringMap{
-		"ShellPath":          sandboxDef.ShellPath,
-		"Copyright":          globals.ShellScriptCopyright,
-		"AppVersion":         common.VersionDef,
-		"DateTime":           timestamp.Format(time.UnixDate),
-		"SandboxDir":         sandboxDef.SandboxDir,
-		"MasterLabel":        masterLabel,
-		"MasterPort":         sandboxDef.Port,
-		"SlaveLabel":         slaveLabel,
-		"MasterAbbr":         masterAbbr,
-		"MasterIp":           masterIp,
-		"RplUser":            sandboxDef.RplUser,
-		"RplPassword":        sandboxDef.RplPassword,
-		"SlaveAbbr":          slaveAbbr,
-		"ChangeMasterExtra":  changeMasterExtra,
-		"MasterAutoPosition": masterAutoPosition,
-		"Slaves":             []common.StringMap{},
+		"AppVersion":                 common.VersionDef,
+		"ChangeMasterExtra":          changeMasterExtra,
+		"ChangeReplicationSourceCmd": convert.OldValue(sandboxDef.Version, "CHANGE REPLICATION SOURCE TO"),
+		"Copyright":                  globals.ShellScriptCopyright,
+		"DateTime":                   timestamp.Format(time.UnixDate),
+		"MasterAbbr":                 masterAbbr,
+		"MasterAutoPosition":         masterAutoPosition,
+		"MasterIp":                   masterIp,
+		"MasterLabel":                masterLabel,
+		"MasterPort":                 sandboxDef.Port,
+		"RplPassword":                sandboxDef.RplPassword,
+		"RplUser":                    sandboxDef.RplUser,
+		"SandboxDir":                 sandboxDef.SandboxDir,
+		"ShellPath":                  sandboxDef.ShellPath,
+		"SlaveAbbr":                  slaveAbbr,
+		"SlaveLabel":                 slaveLabel,
+		"Slaves":                     []common.StringMap{},
+		"ShowBinaryLogStatusCmd":     convert.OldValue(sandboxDef.Version, "SHOW BINARY LOG STATUS"),
+		"SourceHostKeyword":          convert.OldValue(sandboxDef.Version, "SOURCE_HOST"),
+		"SourcePasswordKeyword":      convert.OldValue(sandboxDef.Version, "SOURCE_PASSWORD"),
+		"SourcePortKeyword":          convert.OldValue(sandboxDef.Version, "SOURCE_PORT"),
+		"SourceUserKeyword":          convert.OldValue(sandboxDef.Version, "SOURCE_USER"),
+		"StartReplicaCmd":            convert.OldValue(sandboxDef.Version, "START REPLICA"),
 	}
 
 	logger.Printf("Defining replication data: %v\n", stringMapToJson(data))
@@ -473,6 +486,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 
 // func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
 func CreateReplicationSandbox(sdef SandboxDef, origin string, replData ReplicationData) error {
+	fmt.Printf("CreateReplicationSandbox\n")
 	if !common.IsIPV4(replData.MasterIp) {
 		return fmt.Errorf("IP %s is not a valid IPV4", replData.MasterIp)
 	}
@@ -558,6 +572,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, replData Replicati
 		}
 	}
 
+	fmt.Printf("CreateReplicationSandbox up to topology\n")
 	if sdef.HistoryDir == "REPL_DIR" {
 		sdef.HistoryDir = sdef.SandboxDir
 	}
