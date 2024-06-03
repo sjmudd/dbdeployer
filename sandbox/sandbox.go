@@ -1145,13 +1145,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 }
 
 func writeScripts(scriptBatch ScriptBatch) error {
-	fmt.Println("-----------------------------")
-	fmt.Println("DEBUG: writeScripts(...)")
 	for _, scriptDef := range scriptBatch.scripts {
-		fmt.Println("---------------")
-		fmt.Printf("DEBUG: - calling writeScript(?,?,%q,...)\n", scriptDef.scriptName)
-		fmt.Printf("DEBUG:   - sandboxDir: %v\n", scriptBatch.sandboxDir)
-		fmt.Printf("DEBUG:   - scriptBatch.data: %+v\n", scriptBatch.data)
 		err := writeScript(
 			scriptBatch.logger,
 			scriptBatch.tc,
