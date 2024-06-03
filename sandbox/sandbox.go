@@ -150,8 +150,6 @@ var emptyExecutionList = []concurrent.ExecutionList{}
 func addMySQLVersionedDataIfNecessary(version string, data *common.StringMap) {
 	entry := "StopSlaveCmd"
 	if _, found := (*data)[entry]; !found {
-		fmt.Printf("WARNING: AddMySQLVersionedDataIfNecessary(%v,?): could not find %q in data, so adding versioned settings to data\n", version, entry)
-
 		newData := convert.ConvertedMapByVersion(version)
 
 		_, found = newData[entry]
@@ -295,7 +293,6 @@ func checkPortAvailability(caller string, sandboxType string, installedPorts []i
 
 func fixServerUuid(sandboxDef SandboxDef) (uuidDef string, uuidFile string, err error) {
 	// 5.6.9
-	// isMinimumGtid, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumGtidVersion)
 	isMinimumGtid, err := common.HasCapability(sandboxDef.Flavor, common.GTID, sandboxDef.Version)
 	if err != nil {
 		return globals.EmptyString, globals.EmptyString, err
@@ -819,9 +816,6 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, sbError("sandbox dir creation", "%s", err)
 	}
 
-	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
-	logger.Printf("Single Sandbox template data: %s\n", stringMapToJson(data))
-
 	err = os.Mkdir(dataDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return emptyExecutionList, sbError("data dir creation", "%s", err)
@@ -1029,6 +1023,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 
 	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptSbInclude, globals.TmplSbInclude, false})
 
+	// Add version specific settings to sb.data if missing.
 	addMySQLVersionedDataIfNecessary(sandboxDef.Version, &sb.data)
 
 	err = writeScripts(sb)
