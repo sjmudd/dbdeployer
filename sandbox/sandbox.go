@@ -405,8 +405,6 @@ func getGrantsTemplateName(shortVersion string, isMinimumRoles bool, isMinimumCr
 }
 
 func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
-	fmt.Printf("createSingleSandbox(%q)\n", sandboxDef.DirName)
-
 	var sandboxDir string
 	if sandboxDef.SBType == "" {
 		sandboxDef.SBType = globals.SbTypeSingle
