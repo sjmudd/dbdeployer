@@ -36,7 +36,8 @@ func TestGetLatestVersion(t *testing.T) {
 		"5.5.48",
 		"5.6.78",
 		"5.7.22",
-		"8.0.11",
+		"8.0.37",
+		"8.4.0",
 	}
 
 	latest := common.GetLatestVersion(defaults.Defaults().SandboxBinary, "", common.MySQLFlavor)

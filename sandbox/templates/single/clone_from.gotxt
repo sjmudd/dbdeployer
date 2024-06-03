@@ -130,11 +130,11 @@ do
 done
 echo ""
 
-binlog_file=$(./use -BN -e 'SELECT BINLOG_FILE from performance_schema.clone_status')
-binlog_position=$(./use -BN -e 'SELECT BINLOG_POSITION from performance_schema.clone_status')
+binlog_file=$(./use -BN -e 'SELECT BINLOG_FILE FROM performance_schema.clone_status')
+binlog_position=$(./use -BN -e 'SELECT BINLOG_POSITION FROM performance_schema.clone_status')
 if [ -z "$binlog_file" -o -z "$binlog_position" ]
 then
     echo "Master binary log info not found after clone"  
     exit 1
 fi
-echo "{{.SourceLogFile}}=\"$binlog_file\", {{.SourceLogPos}}=$binlog_position" > clone_replication.sql
+echo "{{.MASTER_LOG_FILE}}=\"$binlog_file\", {{.MASTER_LOG_POS}}=$binlog_position" > clone_replication.sql

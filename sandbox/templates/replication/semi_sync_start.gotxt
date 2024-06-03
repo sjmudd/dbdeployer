@@ -10,8 +10,8 @@ cd "$SBDIR"
 $SBDIR/{{.MasterLabel}}/use -u root -e 'SET GLOBAL {{.RplSemiSyncSourceEnabled}}=1'
 echo "{{.RplSemiSyncSourceEnabled}}=1" >> $SBDIR/{{.MasterLabel}}/my.sandbox.cnf
 {{ range .Slaves }}
-$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{.StopReplicaCmd}}'
+$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{.StopSlaveCmd}}'
 $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e 'SET GLOBAL {{.RplSemiSyncReplicaEnabled}}=1'
-$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{.StartReplicaCmd}}'
+$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{.StartSlaveCmd}}'
 echo "{{.RplSemiSyncReplicaEnabled}}=1" >> $SBDIR/{{.NodeLabel}}{{.Node}}/my.sandbox.cnf
 {{end}}

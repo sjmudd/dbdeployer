@@ -75,3 +75,37 @@ func TestSafeTemplateFill(t *testing.T) {
 	compare.OkIsNotNil("filling template 3", err, t)
 	compare.OkMatchesString("filling template string", err.Error(), `NoSuchVar`, t)
 }
+
+func TestStringMapAdd(t *testing.T) {
+	type StringMapTest = struct {
+		orig     StringMap
+		add      StringMap
+		expected StringMap
+	}
+	tests := []StringMapTest{
+		{StringMap{}, StringMap{}, StringMap{}},
+		{StringMap{"a": "a1"}, StringMap{}, StringMap{"a": "a1"}},
+		{StringMap{"a": "a1"}, StringMap{"a": "a1"}, StringMap{"a": "a1"}},
+		{StringMap{"a": "a1"}, StringMap{"b": "b1"}, StringMap{"a": "a1", "b": "b1"}},
+		{StringMap{"b": "b1"}, StringMap{"a": "a1"}, StringMap{"a": "a1", "b": "b1"}},
+	}
+
+	for _, test := range tests {
+		orig := test.orig
+		got := orig.Add(test.add)
+		// test got values are in expected
+		for k, v := range got {
+			_, ok := test.expected[k]
+			if !ok {
+				t.Errorf("%v.Add(%+v) failed. Value in got not found in expected. key: %v, value: %+v", got, test.add, k, v)
+			}
+		}
+		// test expected values are in got
+		for k, v := range test.expected {
+			_, ok := got[k]
+			if !ok {
+				t.Errorf("%v.Add(%+v) failed. Value in expected not found in got. key: %v, value: %+v", test.expected, test.add, k, v)
+			}
+		}
+	}
+}

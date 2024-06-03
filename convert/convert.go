@@ -21,8 +21,11 @@
 package convert
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/datacharmer/dbdeployer/common"
 )
 
 // convert a part of a version to a numberic value for comparison
@@ -73,59 +76,81 @@ func (v Version) Equal(other Version) bool {
 // - commands are expected to be in upper case
 // - configuration settings are expected to be in lower case
 // - ensure all values are sorted alphabetically
-var PreMySQL84Terms = map[string]string{
-	"CHANGE REPLICATION SOURCE TO":  "CHANGE MASTER TO",
-	"GET_SOURCE_PUBLIC_KEY":         "GET_MASTER_PUBLIC_KEY",
-	"PURGE BINARY LOGS":             "PURGE MASTER LOGS",
-	"RESET BINARY LOGS AND GTIDS":   "RESET MASTER",
-	"RESET REPLICA":                 "RESET SLAVE",
-	"SHOW BINARY LOG STATUS":        "SHOW MASTER STATUS",
-	"SHOW BINARY LOGS":              "SHOW MASTER LOGS",
-	"SHOW REPLICA STATUS":           "SHOW SLAVE STATUS",
-	"SHOW REPLICAS":                 "SHOW SLAVE HOSTS",
-	"SOURCE_AUTO_POSITION":          "MASTER_AUTO_POSITION",
-	"SOURCE_BIND":                   "MASTER_BIND",
-	"SOURCE_COMPRESSION_ALGORITHMS": "MASTER_COMPRESSION_ALGORITHMS",
-	"SOURCE_CONNECT_RETRY":          "MASTER_CONNECT_RETRY",
-	"SOURCE_DELAY":                  "MASTER_DELAY",
-	"SOURCE_HEARTBEAT_PERIOD":       "MASTER_HEARTBEAT_PERIOD",
-	"SOURCE_HOST":                   "MASTER_HOST",
-	"SOURCE_LOG_FILE":               "MASTER_LOG_FILE",
-	"SOURCE_LOG_POS":                "MASTER_LOG_POS",
-	"SOURCE_PASSWORD":               "MASTER_PASSWORD",
-	"SOURCE_PORT":                   "MASTER_PORT",
-	"SOURCE_PUBLIC_KEY_PATH":        "MASTER_PUBLIC_KEY_PATH",
-	"SOURCE_RETRY_COUNT":            "MASTER_RETRY_COUNT",
-	"SOURCE_SSL":                    "MASTER_SSL",
-	"SOURCE_SSL_CA":                 "MASTER_SSL_CA",
-	"SOURCE_SSL_CAPATH":             "MASTER_SSL_CAPATH",
-	"SOURCE_SSL_CERT":               "MASTER_SSL_CERT",
-	"SOURCE_SSL_CIPHER":             "MASTER_SSL_CIPHER",
-	"SOURCE_SSL_CRL":                "MASTER_SSL_CRL",
-	"SOURCE_SSL_CRLPATH":            "MASTER_SSL_CRLPATH",
-	"SOURCE_SSL_KEY":                "MASTER_SSL_KEY",
-	"SOURCE_SSL_VERIFY_SERVER_CERT": "MASTER_SSL_VERIFY_SERVER_CERT",
-	"SOURCE_TLS_CIPHERSUITES":       "MASTER_TLS_CIPHERSUITES",
-	"SOURCE_TLS_VERSION":            "MASTER_TLS_VERSION",
-	"SOURCE_USER":                   "MASTER_USER",
-	"SOURCE_ZSTD_COMPRESSION_LEVEL": "MASTER_ZSTD_COMPRESSION_LEVEL",
-	"START REPLICA":                 "START SLAVE",
-	"STOP REPLICA":                  "STOP SLAVE",
-	"rpl_semi_sync_slave_enabled":   "rpl_semi_sync_slave_enabled",
-	"rpl_semi_sync_source_enabled":  "rpl_semi_sync_master_enabled",
+
+type OldAndNewNames struct {
+	OldName string
+	NewName string
 }
+type OldAndNewNamesMap map[string]OldAndNewNames
 
-// Translate replication statements or settings if they are not for 8.4 to the older (original) format
-func OldValue(version string, command string) string {
-	if !mysql84Version(version) {
-		return command
+var (
+	ToPreMySQL84Values = OldAndNewNamesMap{
+
+		// commands
+		"ChangeMasterCmd":     {"CHANGE MASTER TO", "CHANGE REPLICATION SOURCE TO"},
+		"PurgeMasterLogsCmd":  {"PURGE MASTER LOGS", "PURGE BINARY LOGS"},
+		"ResetMasterCmd":      {"RESET MASTER", "RESET BINARY LOGS AND GTIDS"},
+		"ResetSlaveCmd":       {"RESET SLAVE", "RESET REPLICA"},
+		"ShowMasterStatusCmd": {"SHOW MASTER STATUS", "SHOW BINARY LOG STATUS"},
+		"ShowMasterLogsCmd":   {"SHOW MASTER LOGS", "SHOW BINARY LOGS"},
+		"ShowSlaveStatusCmd":  {"SHOW SLAVE STATUS", "SHOW REPLICA STATUS"},
+		"ShowSlaveHostsCmd":   {"SHOW SLAVE HOSTS", "SHOW REPLICAS"},
+		"StartSlaveCmd":       {"START SLAVE", "START REPLICA"},
+		"StopSlaveCmd":        {"STOP SLAVE", "STOP REPLICA"},
+		// terms
+		"GET_MASTER_PUBLIC_KEY":         {"GET_MASTER_PUBLIC_KEY", "GET_SOURCE_PUBLIC_KEY"},
+		"MASTER_AUTO_POSITION":          {"MASTER_AUTO_POSITION", "SOURCE_AUTO_POSITION"},
+		"MASTER_BIND":                   {"MASTER_BIND", "SOURCE_BIND"},
+		"MASTER_COMPRESSION_ALGORITHMS": {"MASTER_COMPRESSION_ALGORITHMS", "SOURCE_COMPRESSION_ALGORITHMS"},
+		"MASTER_CONNECT_RETRY":          {"MASTER_CONNECT_RETRY", "SOURCE_CONNECT_RETRY"},
+		"MASTER_DELAY":                  {"MASTER_DELAY", "SOURCE_DELAY"},
+		"MASTER_HEARTBEAT_PERIOD":       {"MASTER_HEARTBEAT_PERIOD", "SOURCE_HEARTBEAT_PERIOD"},
+		"MASTER_HOST":                   {"MASTER_HOST", "SOURCE_HOST"},
+		"MASTER_LOG_FILE":               {"MASTER_LOG_FILE", "SOURCE_LOG_FILE"},
+		"MASTER_LOG_POS":                {"MASTER_LOG_POS", "SOURCE_LOG_POS"},
+		"MASTER_PASSWORD":               {"MASTER_PASSWORD", "SOURCE_PASSWORD"},
+		"MASTER_PORT":                   {"MASTER_PORT", "SOURCE_PORT"},
+		"MASTER_PUBLIC_KEY_PATH":        {"MASTER_PUBLIC_KEY_PATH", "SOURCE_PUBLIC_KEY_PATH"},
+		"MASTER_RETRY_COUNT":            {"MASTER_RETRY_COUNT", "SOURCE_RETRY_COUNT"},
+		"MASTER_SSL":                    {"MASTER_SSL", "SOURCE_SSL"},
+		"MASTER_SSL_CA":                 {"MASTER_SSL_CA", "SOURCE_SSL_CA"},
+		"MASTER_SSL_CAPATH":             {"MASTER_SSL_CAPATH", "SOURCE_SSL_CAPATH"},
+		"MASTER_SSL_CERT":               {"MASTER_SSL_CERT", "SOURCE_SSL_CERT"},
+		"MASTER_SSL_CIPHER":             {"MASTER_SSL_CIPHER", "SOURCE_SSL_CIPHER"},
+		"MASTER_SSL_CRL":                {"MASTER_SSL_CRL", "SOURCE_SSL_CRL"},
+		"MASTER_SSL_CRLPATH":            {"MASTER_SSL_CRLPATH", "SOURCE_SSL_CRLPATH"},
+		"MASTER_SSL_KEY":                {"MASTER_SSL_KEY", "SOURCE_SSL_KEY"},
+		"MASTER_SSL_VERIFY_SERVER_CERT": {"MASTER_SSL_VERIFY_SERVER_CERT", "SOURCE_SSL_VERIFY_SERVER_CERT"},
+		"MASTER_TLS_CIPHERSUITES":       {"MASTER_TLS_CIPHERSUITES", "SOURCE_TLS_CIPHERSUITES"},
+		"MASTER_TLS_VERSION":            {"MASTER_TLS_VERSION", "SOURCE_TLS_VERSION"},
+		"MASTER_USER":                   {"MASTER_USER", "SOURCE_USER"},
+		"MASTER_ZSTD_COMPRESSION_LEVEL": {"MASTER_ZSTD_COMPRESSION_LEVEL", "SOURCE_ZSTD_COMPRESSION_LEVEL"},
+		"Master_Log_File":               {"Master_Log_File", "Source_Log_File"},
+		"Master_Log_Pos":                {"Master_Log_Pos", "Source_Log_Pos"},
+		// variables
+		"rpl_semi_sync_master":         {"rpl_semi_sync_master", "rpl_semi_sync_source"},
+		"rpl_semi_sync_master_enabled": {"rpl_semi_sync_master_enabled", "rpl_semi_sync_source_enabled"},
+		"rpl_semi_sync_slave":          {"rpl_semi_sync_slave", "rpl_semi_sync_replica"},
+		"rpl_semi_sync_slave_enabled":  {"rpl_semi_sync_slave_enabled", "rpl_semi_sync_replica_enabled"},
+		"semisync_master":              {"semisync_master", "semisync_source"},
+		"semisync_slave":               {"semisync_slave", "semisync_replica"},
 	}
+)
 
-	if replacement, ok := PreMySQL84Terms[strings.ToUpper(command)]; ok {
-		return replacement
+func ConvertedMapByVersion(version string) common.StringMap {
+	var (
+		m         = make(common.StringMap)
+		version84 = mysql84Version(version)
+	)
+
+	for key, value := range ToPreMySQL84Values {
+		if version84 {
+			m[key] = value.NewName
+		} else {
+			m[key] = value.OldName
+		}
 	}
-
-	return command
+	return m
 }
 
 // mysql84Version is true if the version provided is an 8.4 (compatible version)
@@ -137,6 +162,25 @@ func mysql84Version(version string) bool {
 		return true
 	}
 	return false
+}
+
+// Given the version and key lookup the value and return the new or old version account to the version.
+// - if the key is not fuond return a variable to indicate this.
+func VersionedValue(version string, key string) (string, error) {
+	var (
+		version84 = mysql84Version(version)
+	)
+
+	for k, value := range ToPreMySQL84Values {
+		if k == key {
+			if version84 {
+				return value.NewName, nil
+			} else {
+				return value.OldName, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("VersionedValue(%v,%v): key not found", version, key)
 }
 
 // generic84Pattern will take a version and old and new strings and
@@ -151,28 +195,4 @@ func generic84Pattern(version string, oldName string, newName string) string {
 		return newName
 	}
 	return oldName
-}
-
-func SourceAutoPosition(version string) string {
-	return generic84Pattern(version, "MASTER_AUTO_POSITION", "SOURCE_AUTO_POSITION")
-}
-
-func GetSourcePublicKey(version string) string {
-	return generic84Pattern(version, "GET_MASTER_PUBLIC_KEY", "GET_SOURCE_PUBLIC_KEY")
-}
-
-func ChangeReplicationSourceTo(version string) string {
-	return generic84Pattern(version, "CHANGE MASTER TO", "CHANGE REPLICATION SOURCE TO")
-}
-
-func ShowReplicaStatus(version string) string {
-	return generic84Pattern(version, "SHOW SLAVE STATUS", "SHOW REPLICA STATUS")
-}
-
-func ShowBinaryLogStatus(version string) string {
-	return generic84Pattern(version, "SHOW MASTER STATUS", "SHOW BINARY LOG STATUS")
-}
-
-func StartReplica(version string) string {
-	return generic84Pattern(version, "START SLAVE", "START REPLICA")
 }

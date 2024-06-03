@@ -12,7 +12,7 @@ do
 	port=$($SBDIR/{{.NodeLabel}}$M/use -BN -e "SHOW VARIABLES LIKE 'port'")
 	server_id=$($SBDIR/{{.NodeLabel}}$M/use -BN -e "SHOW VARIABLES LIKE 'server_id'")
 	echo "$port - $server_id"
-	$SBDIR/{{.NodeLabel}}$M/use -e '{{.ShowReplicationSourceStatus}}\G' | grep "File\|Position\|Executed"
+	$SBDIR/{{.NodeLabel}}$M/use -e '{{.ShowMasterStatusCmd}}\G' | grep "File\|Position\|Executed"
 done
 for S in $SLAVES
 do
@@ -20,5 +20,5 @@ do
 	port=$($SBDIR/{{.NodeLabel}}$S/use -BN -e "SHOW VARIABLES LIKE 'port'")
 	server_id=$($SBDIR/{{.NodeLabel}}$S/use -BN -e "SHOW VARIABLES LIKE 'server_id'")
 	echo "$port - $server_id"
-	$SBDIR/{{.NodeLabel}}$S/use -e '{{.ShowReplicaStatusCmd}}\G' | grep "\(Running:\|{{.SourceLogPosXXX}}\|\<{{.SourceLogFileXXX}}\|Retrieved\|Channel\|Executed\)"
+	$SBDIR/{{.NodeLabel}}$S/use -e '{{.ShowSlaveStatusCmd}}\G' | grep "\(Running:\|{{.MasterLogPos}}\|\<{{.MasterLogFile}}\|Retrieved\|Channel\|Executed\)"
 done

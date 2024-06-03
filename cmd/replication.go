@@ -81,14 +81,17 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 	if args[0] != sd.BasedirName {
 		origin = sd.BasedirName
 	}
-	err = sandbox.CreateReplicationSandbox(sd, origin,
+	err = sandbox.CreateReplicationSandbox(
+		sd,
+		origin,
 		sandbox.ReplicationData{
 			Topology:   topology,
 			Nodes:      nodes,
 			NdbNodes:   ndbNodes,
 			MasterIp:   masterIp,
 			MasterList: masterList,
-			SlaveList:  slaveList})
+			SlaveList:  slaveList,
+		})
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}

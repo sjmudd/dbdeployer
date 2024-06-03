@@ -16,8 +16,8 @@ fi
 
 {{ range .Slaves }}
 echo "initializing {{.SlaveLabel}} {{.Node}}"
-echo '{{.ChangeReplicationSourceCmd}}  {{.SourceHostKeyword}}="{{.MasterIp}}",  {{.SourcePortKeyword}}={{.MasterPort}},  {{.SourceUserKeyword}}="{{.RplUser}}",  {{.SourcePasswordKeyword}}="{{.RplPassword}}" {{.MasterAutoPosition}} {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
-$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{.StartReplicaCmd}}'
+echo '{{.ChangeMasterCmd}}  {{.MASTER_HOST}}="{{.MasterIp}}",  {{.MASTER_PORT}}={{.MasterPort}},  {{.MASTER_USER}}="{{.RplUser}}",  {{.MASTER_PASSWORD}}="{{.RplPassword}}" {{.MASTER_AUTO_POSITION}} {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
+$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{.StartSlaveCmd}}'
 {{end}}
 if [ -x ./post_initialization ]
 then

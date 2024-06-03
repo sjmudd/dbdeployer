@@ -20,7 +20,7 @@ then
     is_slave=$(ls data | grep relay)
     if [ -n "$is_slave" ]
     then
-        ./use -e "{{.StopReplicaCmd}}; {{.ResetReplicaCmd}};"
+        ./use -e "{{.StopSlaveCmd}}; {{.ResetSlaveCmd}};"
     fi
     if [[ "$VERSION" > "5.1" ]]
     then
@@ -38,7 +38,7 @@ fi
 is_master=$(ls data | grep 'mysql-bin')
 if [ -n "$is_master" ]
 then
-    ./use -e '{{.ResetBinaryLogsAndGtidsCmd}}'
+    ./use -e '{{.ResetMasterCmd}}'
 fi
 
 ./stop

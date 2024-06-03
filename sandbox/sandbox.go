@@ -29,6 +29,7 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
+	"github.com/datacharmer/dbdeployer/convert"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 )
@@ -116,6 +117,14 @@ type ScriptDef struct {
 	makeExecutable bool
 }
 
+func (sd ScriptDef) String() string {
+	return fmt.Sprintf("{ScriptDef: scriptName: %q, templateName: %q, makeExecutable: %v}",
+		sd.scriptName,
+		sd.templateName,
+		sd.makeExecutable,
+	)
+}
+
 type ScriptBatch struct {
 	tc         TemplateCollection
 	logger     *defaults.Logger
@@ -124,7 +133,35 @@ type ScriptBatch struct {
 	scripts    []ScriptDef
 }
 
+// String prints out the representation of the ScriptBatch
+func (sb ScriptBatch) String() string {
+	return fmt.Sprintf("{tc: %+v, logger: %+v, sandbox: %q, data: %+v, scripts: %+v}",
+		sb.tc,
+		sb.logger,
+		sb.sandboxDir,
+		sb.data,
+		sb.scripts)
+}
+
 var emptyExecutionList = []concurrent.ExecutionList{}
+
+// add MySQL version specific data to data
+// - use this sample setting for the test to see if it's there already
+func addMySQLVersionedDataIfNecessary(version string, data *common.StringMap) {
+	entry := "StopSlaveCmd"
+	if _, found := (*data)[entry]; !found {
+		fmt.Printf("WARNING: AddMySQLVersionedDataIfNecessary(%v,?): could not find %q in data, so adding versioned settings to data\n", version, entry)
+
+		newData := convert.ConvertedMapByVersion(version)
+
+		_, found = newData[entry]
+		if !found {
+			fmt.Printf("WARNING: Could not find %v in newData!\n", entry)
+		} else {
+			*data = (*data).Add(newData)
+		}
+	}
+}
 
 func getOptionsFromFile(filename string) (options []string, err error) {
 	skipOptions := map[string]bool{
@@ -349,8 +386,26 @@ func sbError(reason, format string, args ...interface{}) error {
 	return fmt.Errorf(reason+" "+format, args...)
 }
 
+func getGrantsTemplateName(shortVersion string, isMinimumRoles bool, isMinimumCreateUserVersion bool) string {
+	var grantsTemplateName string
+
+	switch {
+	// 8.0.0
+	case shortVersion == "7.4":
+		grantsTemplateName = globals.TmplGrants5x
+	case isMinimumRoles:
+		grantsTemplateName = globals.TmplGrants8x
+		// 5.7.6
+	case isMinimumCreateUserVersion:
+		grantsTemplateName = globals.TmplGrants57
+	default:
+		grantsTemplateName = globals.TmplGrants5x
+	}
+	return grantsTemplateName
+}
+
 func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
-	fmt.Printf("createSingleSandbox: %+v\n", sandboxDef)
+	fmt.Printf("createSingleSandbox(%q)\n", sandboxDef.DirName)
 
 	var sandboxDir string
 	if sandboxDef.SBType == "" {
@@ -955,7 +1010,6 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			globals.ScriptCloneConnectionSql, globals.TmplCloneConnectionSql, false})
 		logger.Printf("enabling clone scripts")
 	}
-	var grantsTemplateName string = ""
 	// isMinimumRoles, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
 	isMinimumRoles, err := common.HasCapability(sandboxDef.Flavor, common.Roles, sandboxDef.Version)
 	if err != nil {
@@ -966,20 +1020,18 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if err != nil {
 		return emptyExecutionList, err
 	}
-	switch {
-	// 8.0.0
-	case shortVersion == "7.4":
-		grantsTemplateName = globals.TmplGrants5x
-	case isMinimumRoles:
-		grantsTemplateName = globals.TmplGrants8x
-		// 5.7.6
-	case isMinimumCreateUserVersion:
-		grantsTemplateName = globals.TmplGrants57
-	default:
-		grantsTemplateName = globals.TmplGrants5x
-	}
-	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptGrantsMysql, grantsTemplateName, false})
+
+	sb.scripts = append(
+		sb.scripts,
+		ScriptDef{
+			globals.ScriptGrantsMysql,
+			getGrantsTemplateName(shortVersion, isMinimumRoles, isMinimumCreateUserVersion),
+			false,
+	})
+
 	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptSbInclude, globals.TmplSbInclude, false})
+
+	addMySQLVersionedDataIfNecessary(sandboxDef.Version, &sb.data)
 
 	err = writeScripts(sb)
 	if err != nil {
@@ -1095,10 +1147,24 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 }
 
 func writeScripts(scriptBatch ScriptBatch) error {
+	fmt.Println("-----------------------------")
+	fmt.Println("DEBUG: writeScripts(...)")
 	for _, scriptDef := range scriptBatch.scripts {
-		err := writeScript(scriptBatch.logger, scriptBatch.tc, scriptDef.scriptName, scriptDef.templateName,
-			scriptBatch.sandboxDir, scriptBatch.data, scriptDef.makeExecutable)
+		fmt.Println("---------------")
+		fmt.Printf("DEBUG: - calling writeScript(?,?,%q,...)\n", scriptDef.scriptName)
+		fmt.Printf("DEBUG:   - sandboxDir: %v\n", scriptBatch.sandboxDir)
+		fmt.Printf("DEBUG:   - scriptBatch.data: %+v\n", scriptBatch.data)
+		err := writeScript(
+			scriptBatch.logger,
+			scriptBatch.tc,
+			scriptDef.scriptName,
+			scriptDef.templateName,
+			scriptBatch.sandboxDir,
+			scriptBatch.data,
+			scriptDef.makeExecutable,
+		)
 		if err != nil {
+			fmt.Printf("ERROR: writeScript(?,?,%q,...) failed: %v\n", scriptDef.scriptName, err)
 			return err
 		}
 	}

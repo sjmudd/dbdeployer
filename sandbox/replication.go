@@ -104,11 +104,11 @@ func computeBaseport(proposed int) int {
 }
 
 func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
-	fmt.Printf("CreateMasterSlaveReplication\n")
+	var (
+		execLists []concurrent.ExecutionList
+		logger    *defaults.Logger
+	)
 
-	var execLists []concurrent.ExecutionList
-
-	var logger *defaults.Logger
 	if sandboxDef.Logger != nil {
 		logger = sandboxDef.Logger
 	} else {
@@ -180,7 +180,10 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	changeMasterExtra := ""
 	masterAutoPosition := ""
 	if sandboxDef.GtidOptions != "" {
-		name := convert.OldValue(sandboxDef.Version, "SOURCE_AUTO_POSITION")
+		name, err := convert.VersionedValue(sandboxDef.Version, "MASTER_AUTO_POSITION")
+		if err != nil {
+			return err
+		}
 		masterAutoPosition += fmt.Sprintf(", %v=1", name)
 		logger.Printf("Adding %v to replica setup\n", name)
 	}
@@ -190,9 +193,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		return err
 	}
 	if hasNativeAuthPlugin {
-		name := convert.OldValue(sandboxDef.Version, "GET_SOURCE_PUBLIC_KEY")
-
 		if !sandboxDef.NativeAuthPlugin {
+			name, err := convert.VersionedValue(sandboxDef.Version, "GET_MASTER_PUBLIC_KEY")
+			if err != nil {
+				return err
+			}
+
 			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, fmt.Sprintf("%v=1", name))
 		}
 	}
@@ -205,31 +211,28 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	timestamp := time.Now()
 
 	changeMasterExtra = setChangeMasterProperties(changeMasterExtra, sandboxDef.ChangeMasterOptions, logger)
+
 	var data = common.StringMap{
-		"AppVersion":                 common.VersionDef,
-		"ChangeMasterExtra":          changeMasterExtra,
-		"ChangeReplicationSourceCmd": convert.OldValue(sandboxDef.Version, "CHANGE REPLICATION SOURCE TO"),
-		"Copyright":                  globals.ShellScriptCopyright,
-		"DateTime":                   timestamp.Format(time.UnixDate),
-		"MasterAbbr":                 masterAbbr,
-		"MasterAutoPosition":         masterAutoPosition,
-		"MasterIp":                   masterIp,
-		"MasterLabel":                masterLabel,
-		"MasterPort":                 sandboxDef.Port,
-		"RplPassword":                sandboxDef.RplPassword,
-		"RplUser":                    sandboxDef.RplUser,
-		"SandboxDir":                 sandboxDef.SandboxDir,
-		"ShellPath":                  sandboxDef.ShellPath,
-		"SlaveAbbr":                  slaveAbbr,
-		"SlaveLabel":                 slaveLabel,
-		"Slaves":                     []common.StringMap{},
-		"ShowBinaryLogStatusCmd":     convert.OldValue(sandboxDef.Version, "SHOW BINARY LOG STATUS"),
-		"SourceHostKeyword":          convert.OldValue(sandboxDef.Version, "SOURCE_HOST"),
-		"SourcePasswordKeyword":      convert.OldValue(sandboxDef.Version, "SOURCE_PASSWORD"),
-		"SourcePortKeyword":          convert.OldValue(sandboxDef.Version, "SOURCE_PORT"),
-		"SourceUserKeyword":          convert.OldValue(sandboxDef.Version, "SOURCE_USER"),
-		"StartReplicaCmd":            convert.OldValue(sandboxDef.Version, "START REPLICA"),
+		"AppVersion":         common.VersionDef,
+		"ChangeMasterExtra":  changeMasterExtra,
+		"Copyright":          globals.ShellScriptCopyright,
+		"DateTime":           timestamp.Format(time.UnixDate),
+		"MasterAbbr":         masterAbbr,
+		"MasterAutoPosition": masterAutoPosition,
+		"MasterIp":           masterIp,
+		"MasterLabel":        masterLabel,
+		"MasterPort":         sandboxDef.Port,
+		"RplPassword":        sandboxDef.RplPassword,
+		"RplUser":            sandboxDef.RplUser,
+		"SandboxDir":         sandboxDef.SandboxDir,
+		"ShellPath":          sandboxDef.ShellPath,
+		"SlaveAbbr":          slaveAbbr,
+		"SlaveLabel":         slaveLabel,
+		"Slaves":             []common.StringMap{},
 	}
+
+	// Add the MySQL 8.4 specific override settings
+	data = data.Add(convert.ConvertedMapByVersion(sandboxDef.Version))
 
 	logger.Printf("Defining replication data: %v\n", stringMapToJson(data))
 	installationMessage := "Installing and starting %s\n"
@@ -246,6 +249,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	sandboxDef.NodeNum = 1
 	sandboxDef.SBType = "replication-node"
 	sandboxDef.ReadOnlyOptions = ""
+
 	logger.Printf("Creating single sandbox for master\n")
 	execList, err := CreateChildSandbox(sandboxDef)
 	if err != nil {
@@ -321,7 +325,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			"ChangeMasterExtra":  changeMasterExtra,
 			"MasterAutoPosition": masterAutoPosition,
 			"RplUser":            sandboxDef.RplUser,
-			"RplPassword":        sandboxDef.RplPassword})
+			"RplPassword":        sandboxDef.RplPassword,
+		})
 		sandboxDef.LoadGrants = false
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", slaveLabel, i)
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
@@ -383,7 +388,11 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			"SlaveAbbr":          slaveAbbr,
 			"SandboxDir":         sandboxDef.SandboxDir,
 		}
-		logger.Printf("Defining replication node data: %v\n", stringMapToJson(dataSlave))
+
+		// Add MySQL 8.4 specific setting overrides
+		dataSlave = dataSlave.Add(convert.ConvertedMapByVersion(common.VersionDef))
+
+		logger.Printf("Defining replication node data: %+v\n", stringMapToJson(dataSlave))
 		logger.Printf("Create slave script %d\n", i)
 		err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
 			[]ScriptDef{
@@ -572,7 +581,6 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, replData Replicati
 		}
 	}
 
-	fmt.Printf("CreateReplicationSandbox up to topology\n")
 	if sdef.HistoryDir == "REPL_DIR" {
 		sdef.HistoryDir = sdef.SandboxDir
 	}

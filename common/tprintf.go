@@ -30,6 +30,25 @@ import (
 // StringMap defines the map of variable types, for brevity
 type StringMap map[string]interface{}
 
+// Add returns a StringMap of the original map with the sm2 map values added
+// - if there are duplicate/overlapping entries a warning will be printed.
+func (sm StringMap) Add(sm2 StringMap) StringMap {
+	m := make(StringMap)
+	for k, v := range sm {
+		m[k] = v
+	}
+	for k, v := range sm2 {
+		if v, ok := m[k]; ok {
+			fmt.Printf("WARNING: StringMap.Add(): key: %v already defined in StringMap. Have value: %v, Will overwrite with: %v\n",
+				k,
+				sm[k],
+				v)
+		}
+		m[k] = v
+	}
+	return m
+}
+
 // Given a multi-line string, this function removes leading
 // spaces from every line.
 // It also removes the first line, if it is empty
