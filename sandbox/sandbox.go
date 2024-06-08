@@ -125,24 +125,6 @@ func (sd ScriptDef) String() string {
 	)
 }
 
-type ScriptBatch struct {
-	tc         TemplateCollection
-	logger     *defaults.Logger
-	sandboxDir string
-	data       common.StringMap
-	scripts    []ScriptDef
-}
-
-// String prints out the representation of the ScriptBatch
-func (sb ScriptBatch) String() string {
-	return fmt.Sprintf("{tc: %+v, logger: %+v, sandbox: %q, data: %+v, scripts: %+v}",
-		sb.tc,
-		sb.logger,
-		sb.sandboxDir,
-		sb.data,
-		sb.scripts)
-}
-
 var emptyExecutionList = []concurrent.ExecutionList{}
 
 // add MySQL version specific data to data
@@ -313,7 +295,7 @@ func fixServerUuid(sandboxDef SandboxDef) (uuidDef string, uuidFile string, err 
 }
 
 func sliceToText(stringSlice []string) string {
-	var text string = ""
+	var text = ""
 	for _, v := range stringSlice {
 		if len(v) > 0 {
 			text += fmt.Sprintf("%s\n", v)
@@ -820,12 +802,10 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if err != nil {
 		return emptyExecutionList, sbError("data dir creation", "%s", err)
 	}
-	logger.Printf("Created directory %s\n", dataDir)
 	err = os.Mkdir(tmpDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return emptyExecutionList, sbError("tmp dir creation", "%s", err)
 	}
-	logger.Printf("Created directory %s\n", tmpDir)
 	script := ""
 	initScriptFlags := ""
 	// isMinimumDefaultInitialize, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDefaultInitializeVersion)
@@ -990,16 +970,14 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		},
 	}
 	if sandboxDef.EnableAdminAddress {
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAdmin, globals.TmplUseAdmin, true})
+		sb.AppendScript(globals.ScriptUseAdmin, globals.TmplUseAdmin, true)
 	}
 	if sandboxDef.MysqlXPort != 0 {
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptMysqlsh, globals.TmplMysqlsh, true})
+		sb.AppendScript(globals.ScriptMysqlsh, globals.TmplMysqlsh, true)
 	}
 	if isMinimumClonePlugin {
-		sb.scripts = append(sb.scripts, ScriptDef{
-			globals.ScriptCloneFrom, globals.TmplCloneFrom, true})
-		sb.scripts = append(sb.scripts, ScriptDef{
-			globals.ScriptCloneConnectionSql, globals.TmplCloneConnectionSql, false})
+		sb.AppendScript(globals.ScriptCloneFrom, globals.TmplCloneFrom, true)
+		sb.AppendScript(globals.ScriptCloneConnectionSql, globals.TmplCloneConnectionSql, false)
 		logger.Printf("enabling clone scripts")
 	}
 	// isMinimumRoles, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
@@ -1013,15 +991,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, err
 	}
 
-	sb.scripts = append(
-		sb.scripts,
-		ScriptDef{
-			globals.ScriptGrantsMysql,
-			getGrantsTemplateName(shortVersion, isMinimumRoles, isMinimumCreateUserVersion),
-			false,
-	})
-
-	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptSbInclude, globals.TmplSbInclude, false})
+	sb.AppendScript(globals.ScriptGrantsMysql, getGrantsTemplateName(shortVersion, isMinimumRoles, isMinimumCreateUserVersion), false)
+	sb.AppendScript(globals.ScriptSbInclude, globals.TmplSbInclude, false)
 
 	// Add version specific settings to sb.data if missing.
 	addMySQLVersionedDataIfNecessary(sandboxDef.Version, &sb.data)

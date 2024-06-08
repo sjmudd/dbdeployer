@@ -30,7 +30,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNodes int, masterIp string) error {
+func CreateNdbReplication(sandboxDef SandboxDef, nodes int, ndbNodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 

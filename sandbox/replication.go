@@ -103,7 +103,7 @@ func computeBaseport(proposed int) int {
 	return proposed
 }
 
-func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
 	var (
 		execLists []concurrent.ExecutionList
 		logger    *defaults.Logger
@@ -308,7 +308,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	nodeLabel := defaults.Defaults().NodePrefix
 	for i := 1; i <= slaves; i++ {
 		sandboxDef.Port = basePort + i + 1
-		data["Slaves"] = append(data["Slaves"].([]common.StringMap), common.StringMap{
+
+		slaveData := common.StringMap{
 			"ShellPath":          sandboxDef.ShellPath,
 			"Copyright":          globals.ShellScriptCopyright,
 			"AppVersion":         common.VersionDef,
@@ -326,7 +327,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			"MasterAutoPosition": masterAutoPosition,
 			"RplUser":            sandboxDef.RplUser,
 			"RplPassword":        sandboxDef.RplPassword,
-		})
+		}
+		// Add the MySQL 8.4 specific override settings for slaves too.
+		slaveData.Add(convert.ConvertedMapByVersion(sandboxDef.Version))
+
+		data["Slaves"] = append(data["Slaves"].([]common.StringMap), slaveData)
+
 		sandboxDef.LoadGrants = false
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", slaveLabel, i)
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
@@ -465,12 +471,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		},
 	}
 	if sandboxDef.SemiSyncOptions != "" {
-		sb.scripts = append(sb.scripts, ScriptDef{"post_initialization", globals.TmplSemiSyncStart, true})
+		sb.AppendScript("post_initialization", globals.TmplSemiSyncStart, true)
 	}
 	if sandboxDef.EnableAdminAddress {
-		sb.scripts = append(sb.scripts, ScriptDef{masterAbbr + "a", globals.TmplMasterAdmin, true})
-		sb.scripts = append(sb.scripts, ScriptDef{"na1", globals.TmplMasterAdmin, true})
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true})
+		sb.AppendScript(masterAbbr+"a", globals.TmplMasterAdmin, true)
+		sb.AppendScript("na1", globals.TmplMasterAdmin, true)
+		sb.AppendScript(globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true)
 	}
 	logger.Printf("Create replication scripts\n")
 	err = writeScripts(sb)
@@ -495,7 +501,6 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 
 // func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
 func CreateReplicationSandbox(sdef SandboxDef, origin string, replData ReplicationData) error {
-	fmt.Printf("CreateReplicationSandbox\n")
 	if !common.IsIPV4(replData.MasterIp) {
 		return fmt.Errorf("IP %s is not a valid IPV4", replData.MasterIp)
 	}
@@ -587,17 +592,17 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, replData Replicati
 	var err error
 	switch replData.Topology {
 	case globals.MasterSlaveLabel:
-		err = CreateMasterSlaveReplication(sdef, origin, replData.Nodes, replData.MasterIp)
+		err = CreateMasterSlaveReplication(sdef, replData.Nodes, replData.MasterIp)
 	case globals.GroupLabel:
-		err = CreateGroupReplication(sdef, origin, replData.Nodes, replData.MasterIp)
+		err = CreateGroupReplication(sdef, replData.Nodes, replData.MasterIp)
 	case globals.FanInLabel:
 		err = CreateFanInReplication(sdef, origin, replData.Nodes, replData.MasterIp, replData.MasterList, replData.SlaveList)
 	case globals.AllMastersLabel:
 		err = CreateAllMastersReplication(sdef, origin, replData.Nodes, replData.MasterIp)
 	case globals.PxcLabel:
-		err = CreatePxcReplication(sdef, origin, replData.Nodes, replData.MasterIp)
+		err = CreatePxcReplication(sdef, replData.Nodes, replData.MasterIp)
 	case globals.NdbLabel:
-		err = CreateNdbReplication(sdef, origin, replData.Nodes, replData.NdbNodes, replData.MasterIp)
+		err = CreateNdbReplication(sdef, replData.Nodes, replData.NdbNodes, replData.MasterIp)
 	}
 	return err
 }

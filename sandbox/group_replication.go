@@ -94,7 +94,7 @@ func getBaseAdminPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 	return baseAdminPort, nil
 }
 
-func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 

@@ -93,7 +93,11 @@ var singleScriptNames = []string{
 func testCreateMockSandbox(t *testing.T) {
 	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
-		t.Fatal("mock dir creation failed")
+		if err.Error() == "mock directory mock_dir already exists. Aborting" {
+			t.Fatalf("mock dir creation failed: %v.  Remove directory %q to allow testings to continue", err, DefaultMockDir)
+		} else {
+			t.Fatalf("mock dir creation failed: %v.  Unexpected reason.", err)
+		}
 	}
 	compare.OkIsNil("mock creation", err, t)
 	var versions = []versionRec{
@@ -103,6 +107,7 @@ func testCreateMockSandbox(t *testing.T) {
 		{"5.6.78", "5_6_78", 5678},
 		{"5.7.22", "5_7_22", 5722},
 		{"8.0.11", "8_0_11", 8011},
+		{"8.4.0", "8_4_0", 8400},
 	}
 	for _, v := range versions {
 		mysqlVersion := v.version
@@ -519,7 +524,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 
 	latestVersion := preCreationChecks(t)
 	t.Logf("latest: %s\n", latestVersion)
-	pathVersion := strings.Replace(latestVersion, ".", "_", -1)
+	pathVersion := strings.ReplaceAll(latestVersion, ".", "_")
 	port, err := common.VersionToPort(latestVersion)
 	if err != nil {
 		t.Fatalf("can't convert version %s to port", latestVersion)
@@ -598,7 +603,7 @@ func testCreateReplicationSandbox(t *testing.T) {
 	latestVersion := preCreationChecks(t)
 
 	t.Logf("latest: %s\n", latestVersion)
-	pathVersion := strings.Replace(latestVersion, ".", "_", -1)
+	pathVersion := strings.ReplaceAll(latestVersion, ".", "_")
 	t.Logf("path: %s\n", pathVersion)
 	var sandboxDef = SandboxDef{
 		Version:        latestVersion,

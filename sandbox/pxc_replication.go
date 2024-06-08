@@ -28,7 +28,7 @@ import (
 	"github.com/datacharmer/dbdeployer/globals"
 )
 
-func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 
 	err := common.CheckPrerequisites("PXC", globals.NeededPxcExecutables)
@@ -228,7 +228,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sandboxDef.ReplOptions = fmt.Sprintf("%s\nlog_slave_updates=ON\n", sandboxDef.ReplOptions)
 	}
 	baseReplicationOptions := sandboxDef.ReplOptions
-	var groupCommunication string = "gcomm://"
+	var groupCommunication = "gcomm://"
 	//var auxGroupCommunication string = ""
 	var sstMethod = "rsync"
 
