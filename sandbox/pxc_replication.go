@@ -405,7 +405,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
 			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
 			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
@@ -430,7 +430,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
 			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
 			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
@@ -441,15 +441,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptStartAll, globals.TmplPxcStart, true},
 			{globals.ScriptCheckNodes, globals.TmplPxcCheckNodes, true},
 		},
 	}
 
 	for _, sb := range []ScriptBatch{sbMultiple, sbRepl, sbPxc} {
-		err := writeScripts(sb)
-		if err != nil {
+		if err := sb.WriteScripts("sandbox.go:451"); err != nil {
 			return err
 		}
 	}

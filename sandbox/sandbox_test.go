@@ -172,7 +172,7 @@ func testDetectFlavor(t *testing.T) {
 		},
 		{"3.0.0", []MockFileSet{
 			{"bin",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnTiDbServer, noOpMockTemplateName, true},
 				}},
 		},
@@ -180,7 +180,7 @@ func testDetectFlavor(t *testing.T) {
 		},
 		{"10.0.0", []MockFileSet{
 			{"bin",
-				[]ScriptDef{
+				[]Script{
 					{"aria_chk", noOpMockTemplateName, true},
 				}},
 		},
@@ -188,7 +188,7 @@ func testDetectFlavor(t *testing.T) {
 		},
 		{"10.3.0", []MockFileSet{
 			{"lib",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnLibMariadbClientA, noOpMockTemplateName, false},
 				}},
 		},
@@ -196,7 +196,7 @@ func testDetectFlavor(t *testing.T) {
 		},
 		{"8.0.14", []MockFileSet{
 			{"lib",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnLibPerconaServerClientA, noOpMockTemplateName, false},
 				}},
 		},
@@ -204,11 +204,11 @@ func testDetectFlavor(t *testing.T) {
 		},
 		{"8.0.12", []MockFileSet{
 			{"bin",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnGarbd, noOpMockTemplateName, true},
 				}},
 			{"lib",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnLibPerconaServerClientSo, noOpMockTemplateName, false},
 					{globals.FnLibGaleraSmmSo, noOpMockTemplateName, false},
 				}},
@@ -217,11 +217,11 @@ func testDetectFlavor(t *testing.T) {
 		},
 		{"5.7.77", []MockFileSet{
 			{"bin",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnGarbd, noOpMockTemplateName, true},
 				}},
 			{"lib",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnLibPerconaServerClientA, noOpMockTemplateName, false},
 					{globals.FnLibGaleraSmmA, noOpMockTemplateName, false},
 				}},
@@ -230,14 +230,14 @@ func testDetectFlavor(t *testing.T) {
 		},
 		{"6.7.8", []MockFileSet{
 			{"bin",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnNdbdMgm, noOpMockTemplateName, true},
 					{globals.FnNdbdMgmd, noOpMockTemplateName, true},
 					{globals.FnNdbd, noOpMockTemplateName, true},
 					{globals.FnNdbdMtd, noOpMockTemplateName, true},
 				}},
 			{"lib",
-				[]ScriptDef{
+				[]Script{
 					{globals.FnLibMySQLClientA, noOpMockTemplateName, false},
 					{globals.FnNdbdEngineSo, noOpMockTemplateName, false},
 				}},
@@ -280,7 +280,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		port := v.port
 		fileSet := MockFileSet{
 			"bin",
-			[]ScriptDef{
+			[]Script{
 				{globals.FnTiDbServer, globals.TmplTidbMock, true},
 			},
 		}

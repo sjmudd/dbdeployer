@@ -5,5 +5,5 @@ SBDIR={{.SandboxDir}}
 echo "# executing 'start' on $SBDIR"
 {{ range .Nodes }}
 echo 'executing "start" on {{.NodeLabel}} {{.Node}}'
-$SBDIR/{{.NodeLabel}}{{.Node}}/start "$@"
+bash -x $SBDIR/{{.NodeLabel}}{{.Node}}/start "$@"
 {{end}}

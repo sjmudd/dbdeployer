@@ -372,22 +372,38 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		}
 		logger.Printf("Defining replication node data: %v\n", stringMapToJson(dataSlave))
 		logger.Printf("Create slave script %d\n", i)
-		err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
-			[]ScriptDef{
-				{fmt.Sprintf("%s%d", slaveAbbr, i), globals.TmplSlave, true},
-				{fmt.Sprintf("n%d", i+1), globals.TmplSlave, true},
-			}})
-		if err != nil {
+
+		scripts := []Script{
+			{fmt.Sprintf("%s%d", slaveAbbr, i), globals.TmplSlave, true},
+			{fmt.Sprintf("n%d", i+1), globals.TmplSlave, true},
+		}
+
+		sb := ScriptBatch{
+			ReplicationTemplates,
+			logger,
+			sandboxDef.SandboxDir,
+			dataSlave,
+			scripts,
+		}
+		if err := sb.WriteScripts("replication.go:414"); err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
+
+			scripts = []Script{
+				{fmt.Sprintf("%sa%d", slaveAbbr, i), globals.TmplSlaveAdmin, true},
+				{fmt.Sprintf("na%d", i+1), globals.TmplSlaveAdmin, true},
+			}
+
 			logger.Printf("Create slave admin script %d\n", i)
-			err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
-				[]ScriptDef{
-					{fmt.Sprintf("%sa%d", slaveAbbr, i), globals.TmplSlaveAdmin, true},
-					{fmt.Sprintf("na%d", i+1), globals.TmplSlaveAdmin, true},
-				}})
-			if err != nil {
+			sb := ScriptBatch{
+				ReplicationTemplates,
+				logger,
+				sandboxDef.SandboxDir,
+				dataSlave,
+				scripts,
+			}
+			if err := sb.WriteScripts("replication.go:432"); err != nil {
 				return err
 			}
 		}
@@ -411,48 +427,45 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	execAllSlaves := "exec_all_" + slavePlural
 	execAllMasters := "exec_all_" + masterPlural
 
-	sb := ScriptBatch{
-		tc:         ReplicationTemplates,
-		logger:     logger,
-		sandboxDir: sandboxDef.SandboxDir,
-		data:       data,
-		scripts: []ScriptDef{
-			{globals.ScriptStartAll, globals.TmplStartAll, true},
-			{globals.ScriptRestartAll, globals.TmplRestartAll, true},
-			{globals.ScriptStatusAll, globals.TmplStatusAll, true},
-			{globals.ScriptTestSbAll, globals.TmplTestSbAll, true},
-			{globals.ScriptStopAll, globals.TmplStopAll, true},
-			{globals.ScriptClearAll, globals.TmplClearAll, true},
-			{globals.ScriptSendKillAll, globals.TmplSendKillAll, true},
-			{globals.ScriptUseAll, globals.TmplUseAll, true},
-			{globals.ScriptExecAll, globals.TmplExecAll, true},
-			{globals.ScriptMetadataAll, globals.TmplMetadataAll, true},
-			{useAllSlaves, globals.TmplUseAllSlaves, true},
-			{useAllMasters, globals.TmplUseAllMasters, true},
-			{initializeSlaves, globals.TmplInitSlaves, true},
-			{checkSlaves, globals.TmplCheckSlaves, true},
-			{masterAbbr, globals.TmplMaster, true},
-			{execAllSlaves, globals.TmplExecAllSlaves, true},
-			{execAllMasters, globals.TmplExecAllMasters, true},
-			{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
-			{"n1", globals.TmplMaster, true},
-			{"test_replication", globals.TmplTestReplication, true},
-			{globals.ScriptReplicateFrom, globals.TmplReplReplicateFrom, true},
-			{globals.ScriptSysbench, globals.TmplReplSysbench, true},
-			{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
-		},
+	scripts := []Script{
+		{globals.ScriptStartAll, globals.TmplStartAll, true},
+		{globals.ScriptRestartAll, globals.TmplRestartAll, true},
+		{globals.ScriptStatusAll, globals.TmplStatusAll, true},
+		{globals.ScriptTestSbAll, globals.TmplTestSbAll, true},
+		{globals.ScriptStopAll, globals.TmplStopAll, true},
+		{globals.ScriptClearAll, globals.TmplClearAll, true},
+		{globals.ScriptSendKillAll, globals.TmplSendKillAll, true},
+		{globals.ScriptUseAll, globals.TmplUseAll, true},
+		{globals.ScriptExecAll, globals.TmplExecAll, true},
+		{globals.ScriptMetadataAll, globals.TmplMetadataAll, true},
+		{useAllSlaves, globals.TmplUseAllSlaves, true},
+		{useAllMasters, globals.TmplUseAllMasters, true},
+		{initializeSlaves, globals.TmplInitializeSlaves, true},
+		{checkSlaves, globals.TmplCheckSlaves, true},
+		{masterAbbr, globals.TmplMaster, true},
+		{execAllSlaves, globals.TmplExecAllSlaves, true},
+		{execAllMasters, globals.TmplExecAllMasters, true},
+		{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
+		{"n1", globals.TmplMaster, true},
+		{"test_replication", globals.TmplTestReplication, true},
+		{globals.ScriptReplicateFrom, globals.TmplReplReplicateFrom, true},
+		{globals.ScriptSysbench, globals.TmplReplSysbench, true},
+		{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
 	}
 	if sandboxDef.SemiSyncOptions != "" {
-		sb.scripts = append(sb.scripts, ScriptDef{"post_initialization", globals.TmplSemiSyncStart, true})
+		scripts = append(scripts, Script{"post_initialization", globals.TmplSemiSyncStart, true})
 	}
 	if sandboxDef.EnableAdminAddress {
-		sb.scripts = append(sb.scripts, ScriptDef{masterAbbr + "a", globals.TmplMasterAdmin, true})
-		sb.scripts = append(sb.scripts, ScriptDef{"na1", globals.TmplMasterAdmin, true})
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true})
+		scripts = append(scripts,
+			Script{masterAbbr + "a", globals.TmplMasterAdmin, true},
+			Script{"na1", globals.TmplMasterAdmin, true},
+			Script{globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true},
+		)
 	}
+
 	logger.Printf("Create replication scripts\n")
-	err = writeScripts(sb)
-	if err != nil {
+	sb := ScriptBatch{tc: ReplicationTemplates, logger: logger, sandboxDir: sandboxDef.SandboxDir, data: data, scripts: scripts}
+	if err := sb.WriteScripts("replication.go:494"); err != nil {
 		return err
 	}
 	logger.Printf("Run concurrent sandbox scripts \n")

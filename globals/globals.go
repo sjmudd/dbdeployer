@@ -400,6 +400,7 @@ var (
 	MinimumRolesVersion                       = NumericVersion{8, 0, 0}
 	MinimumDataDictionaryVersion              = NumericVersion{8, 0, 0}
 	MinimumNativeAuthPluginVersion            = NumericVersion{8, 0, 4}
+	MaximumNativeAuthPluginVersion            = NumericVersion{8, 0, 99}
 	MinimumMysqlxDefaultVersion               = NumericVersion{8, 0, 11}
 	MariaDbMinimumGtidVersion                 = NumericVersion{10, 0, 0}
 	MariaDbMinimumMultiSourceVersion          = NumericVersion{10, 0, 0}

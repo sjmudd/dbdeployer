@@ -328,7 +328,7 @@ func RunCleanupActions() {
 	for cleanupActions.Len() > 0 {
 		count++
 		cr := cleanupActions.Pop().(CleanupRec)
-		CondPrintf("#%d - Executing %s( %s)\n", count, cr.label, cr.target)
+		CondPrintf("#%d - Executing %s(%s)\n", count, cr.label, cr.target)
 		cr.f(cr.target)
 	}
 }

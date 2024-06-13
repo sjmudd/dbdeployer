@@ -29,6 +29,7 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
+	"github.com/datacharmer/dbdeployer/convert"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 )
@@ -110,21 +111,37 @@ type SandboxDef struct {
 	RunConcurrently      bool             // Run multiple sandbox creation concurrently
 }
 
-type ScriptDef struct {
+type Script struct {
 	scriptName     string
 	templateName   string
 	makeExecutable bool
 }
 
-type ScriptBatch struct {
-	tc         TemplateCollection
-	logger     *defaults.Logger
-	sandboxDir string
-	data       common.StringMap
-	scripts    []ScriptDef
+func (sd Script) String() string {
+	return fmt.Sprintf("{Script: scriptName: %q, templateName: %q, makeExecutable: %v}",
+		sd.scriptName,
+		sd.templateName,
+		sd.makeExecutable,
+	)
 }
 
 var emptyExecutionList = []concurrent.ExecutionList{}
+
+// add MySQL version specific data to data
+// - use this sample setting for the test to see if it's there already
+func addMySQLVersionedDataIfNecessary(version string, data *common.StringMap) {
+	entry := "StopSlaveCmd"
+	if _, found := (*data)[entry]; !found {
+		newData := convert.ConvertedMapByVersion(version)
+
+		_, found = newData[entry]
+		if !found {
+			fmt.Printf("WARNING: Could not find %v in newData!\n", entry)
+		} else {
+			*data = (*data).Add(newData)
+		}
+	}
+}
 
 func getOptionsFromFile(filename string) (options []string, err error) {
 	skipOptions := map[string]bool{
@@ -347,6 +364,32 @@ func CreateStandaloneSandbox(sandboxDef SandboxDef) (err error) {
 
 func sbError(reason, format string, args ...interface{}) error {
 	return fmt.Errorf(reason+" "+format, args...)
+}
+
+func getGrantsTemplateName(shortVersion string, isMinimumRoles bool, isMinimumCreateUserVersion bool) string {
+	var grantsTemplateName string
+
+	switch {
+	// 8.0.0
+	case shortVersion == "7.4":
+		grantsTemplateName = globals.TmplGrants5x
+	case isMinimumRoles:
+		grantsTemplateName = globals.TmplGrants8x
+		// 5.7.6
+	case isMinimumCreateUserVersion:
+		grantsTemplateName = globals.TmplGrants57
+	default:
+		grantsTemplateName = globals.TmplGrants5x
+	}
+	return grantsTemplateName
+}
+
+func serverIdString(id int) string {
+	var idString string
+	if id > 0 {
+		idString = fmt.Sprintf("server-id=%d", id)
+	}
+	return idString
 }
 
 func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
@@ -743,11 +786,9 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if sandboxDef.PortAsServerId {
 		sandboxDef.ServerId = sandboxDef.Port
 	}
-	if sandboxDef.ServerId > 0 {
-		data["ServerId"] = fmt.Sprintf("server-id=%d", sandboxDef.ServerId)
-	} else {
-		data["ServerId"] = ""
-	}
+
+	data["ServerId"] = serverIdString(sandboxDef.ServerId)
+
 	if common.DirExists(sandboxDir) {
 		sandboxDef, err = checkDirectory(sandboxDef)
 		if err != nil {
@@ -907,81 +948,67 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 	logger.Printf("Writing single sandbox scripts\n")
+
+	scripts := []Script{
+		{globals.ScriptStart, globals.TmplStart, true},
+		{globals.ScriptStatus, globals.TmplStatus, true},
+		{globals.ScriptStop, globals.TmplStop, true},
+		{globals.ScriptClear, globals.TmplClear, true},
+		{globals.ScriptUse, globals.TmplUse, true},
+		{globals.ScriptShowLog, globals.TmplShowLog, true},
+		{globals.ScriptShowBinlog, globals.TmplShowBinlog, true},
+		{globals.ScriptShowRelayLog, globals.TmplShowRelaylog, true},
+		{globals.ScriptSendKill, globals.TmplSendKill, true},
+		{globals.ScriptRestart, globals.TmplRestart, true},
+		{globals.ScriptLoadGrants, globals.TmplLoadGrants, true},
+		{globals.ScriptAddOption, globals.TmplAddOption, true},
+		{globals.ScriptMy, globals.TmplMy, true},
+		{globals.ScriptTestSb, globals.TmplTestSb, true},
+		{globals.ScriptMySandboxCnf, globals.TmplMyCnf, false},
+		{globals.ScriptAfterStart, globals.TmplAfterStart, true},
+		{globals.ScriptConnectionSql, globals.TmplConnectionInfoSql, false},
+		{globals.ScriptConnectionConf, globals.TmplConnectionInfoConf, false},
+		{globals.ScriptConnectionSuperConf, globals.TmplConnectionInfoSuperConf, false},
+		{globals.ScriptConnectionJson, globals.TmplConnectionInfoJson, false},
+		{globals.ScriptConnectionSuperJson, globals.TmplConnectionInfoSuperJson, false},
+		{globals.ScriptReplicateFrom, globals.TmplReplicateFrom, true},
+		{globals.ScriptMetadata, globals.TmplMetadata, true},
+		{globals.ScriptSysbench, globals.TmplSysbench, true},
+		{globals.ScriptSysbenchReady, globals.TmplSysbenchReady, true},
+		{globals.ScriptWipeAndRestart, globals.TmplWipeAndRestart, true},
+	}
+	if sandboxDef.MysqlXPort != 0 {
+		scripts = append(scripts, Script{globals.ScriptMysqlsh, globals.TmplMysqlsh, true})
+	}
+	if isMinimumClonePlugin {
+		scripts = append(scripts, Script{globals.ScriptCloneFrom, globals.TmplCloneFrom, true})
+		scripts = append(scripts, Script{globals.ScriptCloneConnectionSql, globals.TmplCloneConnectionSql, false})
+		logger.Printf("enabling clone scripts")
+	}
+	isMinimumRoles, err := common.HasCapability(sandboxDef.Flavor, common.Roles, sandboxDef.Version)
+	if err != nil {
+		return emptyExecutionList, err
+	}
+	isMinimumCreateUserVersion, err := common.HasCapability(sandboxDef.Flavor, common.CreateUser, sandboxDef.Version)
+	if err != nil {
+		return emptyExecutionList, err
+	}
+
+	scripts = append(scripts, Script{globals.ScriptGrantsMysql, getGrantsTemplateName(shortVersion, isMinimumRoles, isMinimumCreateUserVersion), false})
+	scripts = append(scripts, Script{globals.ScriptSbInclude, globals.TmplSbInclude, false})
+
+	// Add version specific settings to sb.data if missing.
+	addMySQLVersionedDataIfNecessary(sandboxDef.Version, &data)
+
 	sb := ScriptBatch{
 		sandboxDir: sandboxDir,
 		data:       data,
 		logger:     logger,
 		tc:         SingleTemplates,
-		scripts: []ScriptDef{
-			{globals.ScriptStart, globals.TmplStart, true},
-			{globals.ScriptStatus, globals.TmplStatus, true},
-			{globals.ScriptStop, globals.TmplStop, true},
-			{globals.ScriptClear, globals.TmplClear, true},
-			{globals.ScriptUse, globals.TmplUse, true},
-			{globals.ScriptShowLog, globals.TmplShowLog, true},
-			{globals.ScriptShowBinlog, globals.TmplShowBinlog, true},
-			{globals.ScriptShowRelayLog, globals.TmplShowRelaylog, true},
-			{globals.ScriptSendKill, globals.TmplSendKill, true},
-			{globals.ScriptRestart, globals.TmplRestart, true},
-			{globals.ScriptLoadGrants, globals.TmplLoadGrants, true},
-			{globals.ScriptAddOption, globals.TmplAddOption, true},
-			{globals.ScriptMy, globals.TmplMy, true},
-			{globals.ScriptTestSb, globals.TmplTestSb, true},
-			{globals.ScriptMySandboxCnf, globals.TmplMyCnf, false},
-			{globals.ScriptAfterStart, globals.TmplAfterStart, true},
-			{globals.ScriptConnectionSql, globals.TmplConnectionInfoSql, false},
-			{globals.ScriptConnectionConf, globals.TmplConnectionInfoConf, false},
-			{globals.ScriptConnectionSuperConf, globals.TmplConnectionInfoSuperConf, false},
-			{globals.ScriptConnectionJson, globals.TmplConnectionInfoJson, false},
-			{globals.ScriptConnectionSuperJson, globals.TmplConnectionInfoSuperJson, false},
-			{globals.ScriptReplicateFrom, globals.TmplReplicateFrom, true},
-			{globals.ScriptMetadata, globals.TmplMetadata, true},
-			{globals.ScriptSysbench, globals.TmplSysbench, true},
-			{globals.ScriptSysbenchReady, globals.TmplSysbenchReady, true},
-			{globals.ScriptWipeAndRestart, globals.TmplWipeAndRestart, true},
-		},
+		scripts:    scripts,
 	}
-	if sandboxDef.EnableAdminAddress {
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAdmin, globals.TmplUseAdmin, true})
-	}
-	if sandboxDef.MysqlXPort != 0 {
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptMysqlsh, globals.TmplMysqlsh, true})
-	}
-	if isMinimumClonePlugin {
-		sb.scripts = append(sb.scripts, ScriptDef{
-			globals.ScriptCloneFrom, globals.TmplCloneFrom, true})
-		sb.scripts = append(sb.scripts, ScriptDef{
-			globals.ScriptCloneConnectionSql, globals.TmplCloneConnectionSql, false})
-		logger.Printf("enabling clone scripts")
-	}
-	var grantsTemplateName string = ""
-	// isMinimumRoles, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
-	isMinimumRoles, err := common.HasCapability(sandboxDef.Flavor, common.Roles, sandboxDef.Version)
-	if err != nil {
-		return emptyExecutionList, err
-	}
-	// isMinimumCreateUserVersion, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumCreateUserVersion)
-	isMinimumCreateUserVersion, err := common.HasCapability(sandboxDef.Flavor, common.CreateUser, sandboxDef.Version)
-	if err != nil {
-		return emptyExecutionList, err
-	}
-	switch {
-	// 8.0.0
-	case shortVersion == "7.4":
-		grantsTemplateName = globals.TmplGrants5x
-	case isMinimumRoles:
-		grantsTemplateName = globals.TmplGrants8x
-		// 5.7.6
-	case isMinimumCreateUserVersion:
-		grantsTemplateName = globals.TmplGrants57
-	default:
-		grantsTemplateName = globals.TmplGrants5x
-	}
-	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptGrantsMysql, grantsTemplateName, false})
-	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptSbInclude, globals.TmplSbInclude, false})
 
-	err = writeScripts(sb)
-	if err != nil {
+	if err := sb.WriteScripts("sandbox.go:1002"); err != nil {
 		return emptyExecutionList, err
 	}
 	preGrantSqlFile := path.Join(sandboxDir, globals.ScriptPreGrantsSql)
@@ -1100,39 +1127,6 @@ func writeScripts(scriptBatch ScriptBatch) error {
 		if err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName, templateName, directory string,
-	data common.StringMap, makeExecutable bool) error {
-	if directory == "" {
-		return fmt.Errorf("writeScript (%s): missing directory", scriptName)
-	}
-	_, ok := tempVar[templateName]
-	if !ok {
-		return fmt.Errorf("writeScript (%s): template %s not found", scriptName, templateName)
-	}
-	template := tempVar[templateName].Contents
-	template = common.TrimmedLines(template)
-	data["TemplateName"] = templateName
-	var err error
-	text, err := common.SafeTemplateFill(templateName, template, data)
-	if err != nil {
-		return err
-	}
-	executableStatus := ""
-	if makeExecutable {
-		err = writeExec(scriptName, text, directory)
-		executableStatus = " executable"
-	} else {
-		_, err = writeRegularFile(scriptName, text, directory)
-	}
-	if err != nil {
-		return err
-	}
-	if logger != nil {
-		logger.Printf("Creating %s script '%s/%s' using template '%s'\n", executableStatus, common.ReplaceLiteralHome(directory), scriptName, templateName)
 	}
 	return nil
 }

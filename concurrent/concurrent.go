@@ -48,8 +48,10 @@ type ExecutionList struct {
 	Command  ExecCommand
 }
 
-var DebugConcurrency bool
-var VerboseConcurrency bool
+var (
+	DebugConcurrency   bool
+	VerboseConcurrency bool
+)
 
 func addTask(num int, wg *sync.WaitGroup, tasks CommonChan, cmd string, args []string) {
 	wg.Add(1)

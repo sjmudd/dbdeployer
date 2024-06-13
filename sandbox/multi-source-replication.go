@@ -208,7 +208,7 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
 			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
 			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
@@ -219,8 +219,7 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 			{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
 		},
 	}
-	err = writeScripts(sbMulti)
-	if err != nil {
+	if err = sbMulti.WriteScripts("multi-source-replication.go:222"); err != nil {
 		return err
 	}
 	if !sandboxDef.SkipStart {
@@ -427,7 +426,7 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
 			{globals.ScriptCheckMsNodes, globals.TmplCheckMultiSource, true},
 			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
@@ -446,8 +445,7 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		}
 	}
 	logger.Printf("writing fan-in replication scripts in %s\n", sandboxDef.SandboxDir)
-	err = writeScripts(sbMulti)
-	if err != nil {
+	if err = sbMulti.WriteScripts("multi-source-replication.go:448"); err != nil {
 		return err
 	}
 	if !sandboxDef.SkipStart {

@@ -17,18 +17,19 @@ package common
 
 import (
 	"fmt"
+	"slices"
+	"testing"
+
 	"github.com/datacharmer/dbdeployer/compare"
 	"github.com/datacharmer/dbdeployer/globals"
-	"testing"
 )
 
 func TestSafeTemplateFill(t *testing.T) {
-	var template string = `[{{.AppVersion}}] {{.Article}} {{.Adjective}} {{.Noun}} {{.Verb}} {{.Object}}`
-	type tprintfData struct {
+	var template = `[{{.AppVersion}}] {{.Article}} {{.Adjective}} {{.Noun}} {{.Verb}} {{.Object}}`
+	var tests = []struct {
 		data     StringMap
 		expected string
-	}
-	var dataCollection = []tprintfData{
+	}{
 		{
 			StringMap{
 				"Article":   "The",
@@ -49,12 +50,12 @@ func TestSafeTemplateFill(t *testing.T) {
 			fmt.Sprintf("[%s] An ugly and huge *orc* follows the hobbits", VersionDef),
 		},
 	}
-	for _, td := range dataCollection {
-		result, err := SafeTemplateFill("tmpl1", template, td.data)
-		if err == nil && result == td.expected {
+	for _, test := range tests {
+		result, err := SafeTemplateFill("tmpl1", template, test.data)
+		if err == nil && result == test.expected {
 			t.Logf("ok - string formatted as expected: '%s'\n", result)
 		} else {
-			t.Logf("not ok - Expected %s - found %s\n", td.expected, result)
+			t.Logf("not ok - SafeTemplatedFill(?,%q,%+v) failed. Got: %s, Expected: %s\n", template, test.data, result, test.expected)
 			t.Fail()
 		}
 	}
@@ -74,4 +75,105 @@ func TestSafeTemplateFill(t *testing.T) {
 	compare.OkEqualString("empty result", result, globals.EmptyString, t)
 	compare.OkIsNotNil("filling template 3", err, t)
 	compare.OkMatchesString("filling template string", err.Error(), `NoSuchVar`, t)
+}
+
+func TestStringMapAdd(t *testing.T) {
+	type StringMapTest = struct {
+		orig     StringMap
+		add      StringMap
+		expected StringMap
+	}
+	tests := []StringMapTest{
+		{StringMap{}, StringMap{}, StringMap{}},
+		{StringMap{"a": "a1"}, StringMap{}, StringMap{"a": "a1"}},
+		{StringMap{"a": "a1"}, StringMap{"a": "a1"}, StringMap{"a": "a1"}},
+		{StringMap{"a": "a1"}, StringMap{"b": "b1"}, StringMap{"a": "a1", "b": "b1"}},
+		{StringMap{"b": "b1"}, StringMap{"a": "a1"}, StringMap{"a": "a1", "b": "b1"}},
+	}
+
+	for _, test := range tests {
+		orig := test.orig
+		got := orig.Add(test.add)
+		// test got values are in expected
+		for k, v := range got {
+			_, ok := test.expected[k]
+			if !ok {
+				t.Errorf("%v.Add(%+v) failed. Value in got not found in expected. key: %v, value: %+v", got, test.add, k, v)
+			}
+		}
+		// test expected values are in got
+		for k, v := range test.expected {
+			_, ok := got[k]
+			if !ok {
+				t.Errorf("%v.Add(%+v) failed. Value in expected not found in got. key: %v, value: %+v", test.expected, test.add, k, v)
+			}
+		}
+	}
+}
+
+func TestGetVarsFromTemplate(t *testing.T) {
+	tests := []struct {
+		content  string
+		expected []string
+	}{
+		{"", []string{}},
+		{"{{.Var1}}", []string{"Var1"}},
+		{"{{.Var1}},{{.Var2}}", []string{"Var1", "Var2"}},
+		{"{{.Var1}},{{.Var2}},{{.Var3}}", []string{"Var1", "Var2", "Var3"}},
+		{"{{.Var1}},{{.Var2}},{{.Var3}},{{.Var1}}", []string{"Var1", "Var2", "Var3"}},
+		{"{{.Var3}},{{.Var1}},{{.Var2}},{{.Var2}}", []string{"Var1", "Var2", "Var3"}},
+		{"{{.Var3}} {{.Var1}} {{.Var2}} {{.Var2}}", []string{"Var1", "Var2", "Var3"}},
+		{"{{.Var3}}  {{.Var1}}   {{.Var2}}    {{.Var2}}", []string{"Var1", "Var2", "Var3"}},
+		{"{{.Var3}}XX{{.Var1}}XXX{{.Var2}}XXXX{{.Var2}}", []string{"Var1", "Var2", "Var3"}},
+		{"{{.Var3}}XX{{.Var1}}XXX{{.Var2}}Var6{{.Var2}}", []string{"Var1", "Var2", "Var3"}},
+		{"{{.Var3}}XX{{.Var1}}XXX{{.Var2}}.Var6{{.Var2}}", []string{"Var1", "Var2", "Var3"}},
+	}
+
+	for _, test := range tests {
+		got := GetVarsFromTemplate(test.content)
+		if compare := slices.Compare(got, test.expected); compare != 0 {
+			t.Errorf("GetVarsFromTemplate(%q) returns %+v. Expected: %+v",
+				test.content,
+				got,
+				test.expected,
+			)
+		}
+	}
+}
+
+func TestCheckAllParameters(t *testing.T) {
+	var noName = "noName"
+
+	tests := []struct {
+		data StringMap
+		tmpl string
+		err  error
+	}{
+		{StringMap{}, "", nil},
+		{StringMap{"key1": "value1"}, "{{.key1}}", nil},
+		{StringMap{"key1": "value1", "key2": "value2"}, "{{.key1}},{{.key2}}", nil},
+		{StringMap{"key1": "value1", "key2": "value2"}, "{{.key1}},{{.key2}},{{.key3}}", fmt.Errorf(`template "noName": required data for field "key3" was not populated`)},
+		{StringMap{"key1": "value1", "key2": "value2"}, "{{.key1}},{{.key2}},{{.key3}},{{.key4}}", fmt.Errorf(`template "noName": required data for 2 fields were not populated: "key3", "key4"`)},
+	}
+
+	for _, test := range tests {
+		err := checkAllParametersProvided(noName, test.tmpl, test.data)
+		// skip if no error and no error expected
+		if err == test.err && test.err == nil {
+			continue
+		}
+		// errors in both so check the error string
+		if err != nil && test.err != nil && err.Error() == test.err.Error() {
+			continue
+		}
+		if test.err != err {
+			t.Errorf("checkAllParamatersProvided(%q,%q,%+v) failed.\n- returned: >>%+v<<\n- expected: >>%+v<<",
+				noName,
+				test.tmpl,
+				test.data,
+				err,
+				test.err,
+			)
+		}
+	}
 }

@@ -130,7 +130,7 @@ var (
 	sysbenchReadyReplTemplate string
 
 	ReplicationTemplates = TemplateCollection{
-		globals.TmplInitSlaves: TemplateDesc{
+		globals.TmplInitializeSlaves: TemplateDesc{
 			Description: "Initialize slaves after deployment",
 			Notes:       "Can also be run after calling './clear_all'",
 			Contents:    initSlavesTemplate,

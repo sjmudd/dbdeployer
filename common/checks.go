@@ -133,7 +133,7 @@ func GetVersionInfoFromDir(basedir string) []VersionInfo {
 
 		dirPath := path.Join(basedir, ver)
 		flavorPath := path.Join(dirPath, "FLAVOR")
-		var foundFlavor string = MySQLFlavor
+		var foundFlavor = MySQLFlavor
 		if FileExists(flavorPath) {
 			foundFlavor, _ = SlurpAsString(flavorPath)
 			foundFlavor = strings.TrimSpace(foundFlavor)
@@ -656,7 +656,7 @@ func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
 	if len(comparedTo) != 3 {
 		return false, errors.Wrapf(fmt.Errorf("invalid slice size: %v", comparedTo), "GreaterOrEqualVersion:")
 	}
-	var compMajor, compMinor, compRev int = comparedTo[0], comparedTo[1], comparedTo[2]
+	var compMajor, compMinor, compRev = comparedTo[0], comparedTo[1], comparedTo[2]
 	verList, err := VersionToList(version)
 	if err != nil {
 		return false, errors.Wrapf(err, "VersionToList")
@@ -741,7 +741,7 @@ func findFreePortSingle(requestedPort int, usedPorts PortMap) (int, error) {
 // This function should not be used alone, but through FindFreePort.
 // Returns the first port of the requested range
 func findFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error) {
-	var foundPort int = 0
+	var foundPort int
 	requestedPort := basePort
 	candidatePort := requestedPort
 	counter := 0

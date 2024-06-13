@@ -154,6 +154,7 @@ var MySQLCapabilities = Capabilities{
 		NativeAuth: {
 			Description: "Native Authentication plugin",
 			Since:       globals.MinimumNativeAuthPluginVersion,
+			Until:       globals.MaximumNativeAuthPluginVersion,
 		},
 		DataDict: {
 			Description: "data dictionary",
