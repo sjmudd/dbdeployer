@@ -77,7 +77,7 @@ func main() {
 	}
 
 	// Calls the sandbox creation
-	err := sandbox.CreateStandaloneSandbox(sandboxDef)
+	_, err := sandbox.CreateSingleSandbox(sandboxDef)
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
