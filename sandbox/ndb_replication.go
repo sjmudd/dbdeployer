@@ -30,7 +30,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNodes int, masterIp string) error {
+func CreateNdbReplication(sandboxDef SandboxDef, nodes int, ndbNodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 
@@ -272,7 +272,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		sandboxDef.SBType = "ndb-node"
 		sandboxDef.NodeNum = i
 		logger.Printf("Create single sandbox for node %d\n", i)
-		execList, err := CreateChildSandbox(sandboxDef)
+		execList, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}

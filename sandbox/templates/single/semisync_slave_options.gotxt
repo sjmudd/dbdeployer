@@ -1,4 +1,3 @@
 
 # semi-synchronous replication options for slave
-plugin-load=rpl_semi_sync_slave=semisync_slave.so
-#rpl_semi_sync_slave_enabled=1
+plugin-load={{.rpl_semi_sync_slave}}={{.semisync_slave}}.so

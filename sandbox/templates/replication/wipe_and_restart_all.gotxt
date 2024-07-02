@@ -10,7 +10,7 @@ source $include
 cd {{.SandboxDir}}
 if [ -f no_clear_all ]
 then
-    echo "This sandbox ($(basename {{.SandboxDir}})) is locked"
+    echo "This sandbox ($(basename {{.SandboxDir}})) is locked by $(basename {{.SandboxDir}})/no_clear_all"
     echo "It cannot be removed before unlocking"
     exit 1
 fi

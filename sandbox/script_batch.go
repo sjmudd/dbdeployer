@@ -30,12 +30,12 @@ func (sb ScriptBatch) String() string {
 func (sb ScriptBatch) WriteScripts(hint string) error {
 	fmt.Printf("ScriptBatch.WriteScripts(%q): sandboxDir=%q\n", hint, sb.sandboxDir)
 	for _, scriptDef := range sb.scripts {
-		if scriptDef.scriptName == "initialize_nodes" {
-			fmt.Printf("ERROR: WriteScripts(%v): writeScript(%q,?,?,?,?,data=%+v,?) IS GOING TO FAIL!\n",
-				hint,
-				scriptDef.scriptName,
-				sb.data)
-		}
+		//		if scriptDef.scriptName == "initialize_nodes" {
+		//			fmt.Printf("ERROR: WriteScripts(%v): writeScript(%q,?,?,?,?,data=%+v,?) IS GOING TO FAIL!\n",
+		//				hint,
+		//				scriptDef.scriptName,
+		//				sb.data)
+		//		}
 		if err := writeScript(
 			sb.logger,
 			sb.tc,
@@ -69,12 +69,12 @@ func writeScript(
 	data common.StringMap,
 	makeExecutable bool) error {
 
-	fmt.Printf("- writeScript(?,?, scriptName: %q, templateName: %q, directory: %q, len(data): %v)\n",
-		scriptName,
-		templateName,
-		directory,
-		len(data),
-	)
+	//	fmt.Printf("- writeScript(?,?, scriptName: %q, templateName: %q, directory: %q, len(data): %v)\n",
+	//		scriptName,
+	//		templateName,
+	//		directory,
+	//		len(data),
+	//	)
 
 	if directory == "" {
 		return fmt.Errorf("writeScript (%s): missing directory", scriptName)

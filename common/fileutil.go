@@ -495,7 +495,6 @@ func FindInPath(filename string) string {
 
 // Runs a command with arguments
 func RunCmdWithArgs(c string, args []string) (string, error) {
-	fmt.Printf("DEBUG: RunCmdWithArgs(%q, args...)\n", c)
 	out, _, err := runCmdCtrlArgs(c, false, args...)
 	return out, err
 }
@@ -566,7 +565,6 @@ func RunCmdCtrl(c string, silent bool) (string, error) {
 
 // Runs a command
 func RunCmd(c string) (string, error) {
-	fmt.Printf("DEBUG: RunCmd(%q)\n", c)
 	out, _, err := runCmdCtrlArgs(c, false)
 	return out, err
 }

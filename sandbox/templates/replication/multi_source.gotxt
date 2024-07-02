@@ -4,7 +4,7 @@
 SBDIR={{.SandboxDir}}
 cd "$SBDIR"
 
-$SBDIR/use_all 'reset master'
+$SBDIR/use_all '{{.ResetMasterCmd}}'
 
 MASTERS="{{.MasterList}}"
 SLAVES="{{.SlaveList}}"
@@ -18,24 +18,24 @@ do
     do
         if [ "$master" != "$N" ]
         then
-            master_port=$($SBDIR/n$master -BN -e 'select @@port')
-            $SBDIR/n$master -BN  -h {{.MasterIp}} --port=$master_port -u {{.RplUser}} -p{{.RplPassword}} -e 'set @a=1'
-            user_cmd="$user_cmd CHANGE MASTER TO MASTER_USER='{{.RplUser}}', "
-            user_cmd="$user_cmd MASTER_PASSWORD='{{.RplPassword}}', master_host='{{.MasterIp}}', "
-            user_cmd="$user_cmd master_port=$master_port {{.ChangeMasterExtra}} FOR CHANNEL '{{.NodeLabel}}$master';"
-            user_cmd="$user_cmd START SLAVE FOR CHANNEL '{{.NodeLabel}}$master';"
+            master_port=$($SBDIR/n$master -BN -e 'SELECT @@port')
+            $SBDIR/n$master -BN  -h {{.MasterIp}} --port=$master_port -u {{.RplUser}} -p{{.RplPassword}} -e 'SET @a=1'
+            user_cmd="$user_cmd {{.ChangeMasterToCmd}} {{.MASTER_USER}}='{{.RplUser}}', "
+            user_cmd="$user_cmd {{.MASTER_PASSWORD}}='{{.RplPassword}}', {{.MASTER_HOST}}='{{.MasterIp}}', "
+            user_cmd="$user_cmd {{.MASTER_PORT}}=$master_port {{.ChangeMasterExtra}} FOR CHANNEL '{{.NodeLabel}}$master';"
+            user_cmd="$user_cmd {{.StartSlaveCmd}} FOR CHANNEL '{{.NodeLabel}}$master';"
         fi
     done
-	VERBOSE_SQL=""
-	if [ -n "$VERBOSE_SQL" ]
-	then
+    VERBOSE_SQL=""
+    if [ -n "$VERBOSE_SQL" ]
+    then
         VERBOSE_SQL="-v"
-	fi
+    fi
     $SBDIR/{{.NodeLabel}}$N/use $VERBOSE_SQL -u root -e "$user_cmd"
 
     if [ "$SLAVES_READ_ONLY_OPTION" != "" ]
     then
         $SBDIR/{{.NodeLabel}}$N/use $VERBOSE_SQL -u root -e "SET {{.SetGlobal}} $SLAVES_READ_ONLY_OPTION"
-$SBDIR/{{.NodeLabel}}$N/add_option NO_RESTART "{{.SlavesReadOnly}}"
+        $SBDIR/{{.NodeLabel}}$N/add_option NO_RESTART "{{.SlavesReadOnly}}"
     fi
 done

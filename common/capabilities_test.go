@@ -79,6 +79,10 @@ func TestHasCapability(t *testing.T) {
 		{[]string{MySQLFlavor, PerconaServerFlavor}, NativeAuth, "8.0.12", true},
 		{[]string{MySQLFlavor, PerconaServerFlavor}, DataDict, "5.7.40", false},
 		{[]string{MySQLFlavor, PerconaServerFlavor}, DataDict, "8.0.12", true},
+		{[]string{MySQLFlavor, PerconaServerFlavor}, MySQL84ReplicationSettings, "8.0.0", false},
+		{[]string{MySQLFlavor, PerconaServerFlavor}, MySQL84ReplicationSettings, "8.4.0", true},
+		{[]string{MySQLFlavor, PerconaServerFlavor}, MySQL84ReplicationSettings, "8.4.99", true},
+		{[]string{MySQLFlavor, PerconaServerFlavor}, MySQL84ReplicationSettings, "10.0.0", false},
 		{[]string{"no-such-flavor"}, "no-such-feature", "8.0.22", false},
 	}
 	testHasCapability(capabilitiesList, t)

@@ -18,6 +18,7 @@ package common
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/datacharmer/dbdeployer/compare"
@@ -163,7 +164,7 @@ func TestCheckAllParameters(t *testing.T) {
 			continue
 		}
 		// errors in both so check the error string
-		if err != nil && test.err != nil && err.Error() == test.err.Error() {
+		if err != nil && test.err != nil && strings.HasPrefix(err.Error(), test.err.Error()) {
 			continue
 		}
 		if test.err != err {

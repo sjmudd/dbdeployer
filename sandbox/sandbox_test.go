@@ -93,7 +93,7 @@ var singleScriptNames = []string{
 func testCreateMockSandbox(t *testing.T) {
 	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
-		t.Fatal("mock dir creation failed")
+		t.Fatal("mock dir creation failed", DefaultMockDir)
 	}
 	compare.OkIsNil("mock creation", err, t)
 	var versions = []versionRec{
@@ -128,7 +128,7 @@ func testCreateMockSandbox(t *testing.T) {
 			BindAddress:    globals.BindAddressValue,
 		}
 
-		err := CreateStandaloneSandbox(sandboxDef)
+		_, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			t.Logf("Sandbox %s %s\n", mysqlVersion, pathVersion)
 			t.Logf(globals.ErrCreatingSandbox, err)
@@ -152,7 +152,7 @@ func testDetectFlavor(t *testing.T) {
 
 	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
-		t.Fatal("mock dir creation failed")
+		t.Fatal("mock dir creation failed", DefaultMockDir)
 	}
 
 	type FlavorDetection struct {
@@ -264,7 +264,7 @@ func testDetectFlavor(t *testing.T) {
 func testCreateTidbMockSandbox(t *testing.T) {
 	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
-		t.Fatal("mock dir creation failed")
+		t.Fatal("mock dir creation failed", DefaultMockDir)
 	}
 	compare.OkIsNil("mock creation", err, t)
 	var versions = []versionRec{
@@ -307,7 +307,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 			ClientBasedir:   path.Join(mockSandboxBinary, "5.7.25"),
 		}
 
-		err := CreateStandaloneSandbox(sandboxDef)
+		_, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			t.Logf("Sandbox %s %s\n", tidbVersion, pathVersion)
 			t.Logf(globals.ErrCreatingSandbox, err)
@@ -345,7 +345,7 @@ func expectFailure(sandboxDef SandboxDef, label, deployment, regex string, args 
 	var ok bool
 	switch deployment {
 	case "single":
-		err := CreateStandaloneSandbox(sandboxDef)
+		_, err := CreateSingleSandbox(sandboxDef)
 		compare.OkIsNotNil(label, err, t)
 		if err != nil {
 			compare.OkMatchesString(label, err.Error(), regex, t)
@@ -386,7 +386,7 @@ func expectFailure(sandboxDef SandboxDef, label, deployment, regex string, args 
 func testFailSandboxConditions(t *testing.T) {
 	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
-		t.Fatal("mock dir creation failed")
+		t.Fatal("mock dir creation failed", DefaultMockDir)
 	}
 	compare.OkIsNil("mock creation", err, t)
 	mysqlVersion := "5.6.99"
@@ -515,11 +515,11 @@ func testFailSandboxConditions(t *testing.T) {
 	compare.OkIsNil("removal", err, t)
 }
 
-func testCreateStandaloneSandbox(t *testing.T) {
+func testCreateSingleSandbox(t *testing.T) {
 
 	latestVersion := preCreationChecks(t)
 	t.Logf("latest: %s\n", latestVersion)
-	pathVersion := strings.Replace(latestVersion, ".", "_", -1)
+	pathVersion := strings.ReplaceAll(latestVersion, ".", "_")
 	port, err := common.VersionToPort(latestVersion)
 	if err != nil {
 		t.Fatalf("can't convert version %s to port", latestVersion)
@@ -545,7 +545,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 		t.Logf("%s", sandboxDefToJson(sandboxDef))
 	}
 
-	err = CreateStandaloneSandbox(sandboxDef)
+	_, err = CreateSingleSandbox(sandboxDef)
 	if err != nil {
 		t.Fatalf(globals.ErrCreatingSandbox, err)
 	}
@@ -598,7 +598,7 @@ func testCreateReplicationSandbox(t *testing.T) {
 	latestVersion := preCreationChecks(t)
 
 	t.Logf("latest: %s\n", latestVersion)
-	pathVersion := strings.Replace(latestVersion, ".", "_", -1)
+	pathVersion := strings.ReplaceAll(latestVersion, ".", "_")
 	t.Logf("path: %s\n", pathVersion)
 	var sandboxDef = SandboxDef{
 		Version:        latestVersion,
@@ -674,7 +674,7 @@ func TestCreateSandbox(t *testing.T) {
 			t.Fatalf("sandbox home (%s) not empty", defaults.Defaults().SandboxHome)
 		}
 	}
-	t.Run("single", testCreateStandaloneSandbox)
+	t.Run("single", testCreateSingleSandbox)
 	t.Run("replication", testCreateReplicationSandbox)
 	t.Run("mock", testCreateMockSandbox)
 	t.Run("mocktidb", testCreateTidbMockSandbox)

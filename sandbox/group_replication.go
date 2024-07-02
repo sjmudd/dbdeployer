@@ -95,7 +95,7 @@ func getBaseAdminPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 	return baseAdminPort, nil
 }
 
-func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 
@@ -241,7 +241,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	}
 
 	// Add the MySQL 8.4 specific override settings
-	data = data.Add(convert.ConvertedMapByVersion(sandboxDef.Version))
+	data = data.Add(convert.MySQLNamesByVersion(sandboxDef.Version))
 
 	connectionString := ""
 	for i := 0; i < nodes; i++ {
@@ -309,7 +309,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			"RplPassword":       sandboxDef.RplPassword})
 
 		// Add the MySQL 8.4 specific override settings for GR members too.
-		data["Nodes"] = append(data["Nodes"].([]common.StringMap), convert.ConvertedMapByVersion(sandboxDef.Version))
+		data["Nodes"] = append(data["Nodes"].([]common.StringMap), convert.MySQLNamesByVersion(sandboxDef.Version))
 
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.MorePorts = []int{groupPort}
@@ -377,7 +377,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.NodeNum = i
 		// common.CondPrintf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
-		execList, err := CreateChildSandbox(sandboxDef)
+		execList, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}

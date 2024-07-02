@@ -27,8 +27,8 @@ import (
 // Templates for replication
 
 var (
-	//go:embed templates/replication/init_slaves.gotxt
-	initSlavesTemplate string
+	//go:embed templates/replication/initialize_slaves.gotxt
+	initializeSlavesTemplate string
 
 	//go:embed templates/replication/semi_sync_start.gotxt
 	semiSyncStartTemplate string
@@ -133,7 +133,7 @@ var (
 		globals.TmplInitializeSlaves: TemplateDesc{
 			Description: "Initialize slaves after deployment",
 			Notes:       "Can also be run after calling './clear_all'",
-			Contents:    initSlavesTemplate,
+			Contents:    initializeSlavesTemplate,
 		},
 		globals.TmplSemiSyncStart: TemplateDesc{
 			Description: "Starts semi synch replication ",

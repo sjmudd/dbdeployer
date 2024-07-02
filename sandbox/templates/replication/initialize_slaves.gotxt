@@ -26,8 +26,8 @@ fi
 
 {{ range .Slaves }}
 echo "initializing {{.SlaveLabel}} {{.Node}}"
-echo '{{.ChangeMasterCmd}}  {{.MASTER_HOST}}="{{.MasterIp}}",  {{.MASTER_PORT}}={{.MasterPort}},  {{.MASTER_USER}}="{{.RplUser}}",  {{.MASTER_PASSWORD}}="{{.RplPassword}}" {{.MASTER_AUTO_POSITION}} {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
-$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{.StartSlaveCmd}}'
+echo '{{$.ChangeMasterCmd}} {{$.MASTER_HOST}}="{{.MasterIp}}", {{$.MASTER_PORT}}={{.MasterPort}}, {{$.MASTER_USER}}="{{.RplUser}}", {{$.MASTER_PASSWORD}}="{{.RplPassword}}" {{$.MASTER_AUTO_POSITION}} {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
+$SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{$.StartSlaveCmd}}'
 print_error {{.NodeLabel}} $?
 {{end}}
 if [ -x ./post_initialization ]
@@ -37,6 +37,6 @@ then
 	exit_code=$?
 	if [ "$exit_code" == "0" ]
 	then
-rm -f ./post_initialization
+        rm -f ./post_initialization
 	fi
 fi

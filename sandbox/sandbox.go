@@ -132,7 +132,7 @@ var emptyExecutionList = []concurrent.ExecutionList{}
 func addMySQLVersionedDataIfNecessary(version string, data *common.StringMap) {
 	entry := "StopSlaveCmd"
 	if _, found := (*data)[entry]; !found {
-		newData := convert.ConvertedMapByVersion(version)
+		newData := convert.MySQLNamesByVersion(version)
 
 		_, found = newData[entry]
 		if !found {
@@ -296,7 +296,7 @@ func fixServerUuid(sandboxDef SandboxDef) (uuidDef string, uuidFile string, err 
 }
 
 func sliceToText(stringSlice []string) string {
-	var text string = ""
+	var text = ""
 	for _, v := range stringSlice {
 		if len(v) > 0 {
 			text += fmt.Sprintf("%s\n", v)
@@ -354,14 +354,6 @@ func setAdminPortProperties(sandboxDef SandboxDef) (SandboxDef, error) {
 	return sandboxDef, nil
 }
 
-func CreateChildSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
-	return createSingleSandbox(sandboxDef)
-}
-func CreateStandaloneSandbox(sandboxDef SandboxDef) (err error) {
-	_, err = createSingleSandbox(sandboxDef)
-	return err
-}
-
 func sbError(reason, format string, args ...interface{}) error {
 	return fmt.Errorf(reason+" "+format, args...)
 }
@@ -392,7 +384,8 @@ func serverIdString(id int) string {
 	return idString
 }
 
-func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
+// Create a single sandbox given the definition and return an execution list.
+func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
 
 	var sandboxDir string
 	if sandboxDef.SBType == "" {
@@ -796,7 +789,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 	logger.Printf("Checking port %d using checkPortAvailability\n", sandboxDef.Port)
-	err = checkPortAvailability("createSingleSandbox", sandboxDef.SBType, sandboxDef.InstalledPorts, sandboxDef.Port)
+	err = checkPortAvailability("CreateSingleSandbox", sandboxDef.SBType, sandboxDef.InstalledPorts, sandboxDef.Port)
 	if err != nil {
 		return emptyExecutionList, sbError("check port", "%s", err)
 	}
@@ -1167,101 +1160,6 @@ func getLogDirFromSbDescription(fullPath string) (string, error) {
 		}
 	}
 	return logDirectory, nil
-}
-
-// Deprecated: use RemoveCustomSandbox instead
-func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList []concurrent.ExecutionList, err error) {
-	fullPath := path.Join(sandboxDir, sandbox)
-	if !common.DirExists(fullPath) {
-		return emptyExecutionList, fmt.Errorf(globals.ErrDirectoryNotFound, fullPath)
-	}
-	preserve := path.Join(fullPath, globals.ScriptNoClearAll)
-	if !common.ExecExists(preserve) {
-		preserve = path.Join(fullPath, globals.ScriptNoClear)
-	}
-	if common.ExecExists(preserve) {
-		common.CondPrintf("The sandbox %s is locked\n", sandbox)
-		common.CondPrintf("You need to unlock it with \"dbdeployer admin unlock\"\n")
-		return emptyExecutionList, err
-	}
-	logDirectory, err := getLogDirFromSbDescription(fullPath)
-	if err != nil {
-		return emptyExecutionList, err
-	}
-
-	sandboxDefaultMarker := path.Join(fullPath, "is_default")
-	stop := path.Join(fullPath, globals.ScriptStopAll)
-	useKill := common.IsEnvSet("KILL_AS_STOP")
-	if useKill {
-		stop = path.Join(fullPath, globals.ScriptSendKillAll)
-	}
-	if !common.ExecExists(stop) {
-		stop = path.Join(fullPath, globals.ScriptStop)
-		if useKill {
-			stop = path.Join(fullPath, globals.ScriptSendKill)
-		}
-	}
-	if !common.ExecExists(stop) {
-		return emptyExecutionList, fmt.Errorf(globals.ErrExecutableNotFound, stop)
-	}
-
-	if runConcurrently {
-		var eCommand1 = concurrent.ExecCommand{
-			Cmd:  stop,
-			Args: []string{},
-		}
-		execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 0, Command: eCommand1})
-	} else {
-		common.CondPrintf("Running %s\n", stop)
-		_, err = common.RunCmd(stop)
-		if err != nil {
-			return emptyExecutionList, fmt.Errorf(globals.ErrWhileStoppingSandbox, fullPath)
-		}
-	}
-
-	if common.FileExists(sandboxDefaultMarker) {
-		defaultExecutable, err := common.SlurpAsString(sandboxDefaultMarker)
-		if err != nil {
-			return emptyExecutionList, fmt.Errorf("error reading default address from %s: %s",
-				sandboxDefaultMarker, err)
-		}
-		defaultExecutable = strings.TrimSpace(defaultExecutable)
-		if common.FileExists(defaultExecutable) {
-			_ = os.Remove(defaultExecutable)
-		}
-	}
-
-	rmTargets := []string{fullPath, logDirectory}
-
-	for _, target := range rmTargets {
-		if target == "" {
-			continue
-		}
-		cmdStr := "rm"
-		rmArgs := []string{"-rf", target}
-		if runConcurrently {
-			var eCommand2 = concurrent.ExecCommand{
-				Cmd:  cmdStr,
-				Args: rmArgs,
-			}
-			execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 1, Command: eCommand2})
-		} else {
-			for _, item := range rmArgs {
-				cmdStr += " " + item
-			}
-			if globals.UsingDbDeployer && target != logDirectory {
-				common.CondPrintf("Running %s\n", cmdStr)
-			}
-			_, err = common.RunCmdWithArgs("rm", rmArgs)
-			if err != nil {
-				return emptyExecutionList, fmt.Errorf(globals.ErrWhileDeletingSandbox, target)
-			}
-			if globals.UsingDbDeployer && target != logDirectory {
-				common.CondPrintf("Directory %s deleted\n", target)
-			}
-		}
-	}
-	return execList, nil
 }
 
 func RemoveCustomSandbox(sandboxDir, sandbox string, runConcurrently, useStop bool) (execList []concurrent.ExecutionList, err error) {

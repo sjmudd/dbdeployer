@@ -1,8 +1,8 @@
 
-set persist debug='+d,skip_dd_table_access_check';
-set @col_type=(select c.type from mysql.columns c inner join mysql.tables t where t.id=table_id and t.name='tables' and c.name='hidden');
-set @visible=(if(@col_type = 'MYSQL_TYPE_ENUM', 'Visible', '0'));
-set @hidden=(if(@col_type = 'MYSQL_TYPE_ENUM', 'System', '1'));
-create table sys.dd_hidden_tables (id bigint unsigned not null primary key, name varchar(64), schema_id bigint unsigned);
-insert into sys.dd_hidden_tables select id, name, schema_id from mysql.tables where hidden=@hidden;
-update mysql.tables set hidden=@visible where hidden=@hidden and schema_id = 1
+SET PERSIST DEBUG='+d,skip_dd_table_access_check';
+SET @col_type=(SELECT c.type FROM mysql.columns c INNER JOIN mysql.tables t WHERE t.id=table_id AND t.name='tables' AND c.name='hidden');
+SET @visible=(IF(@col_type = 'MYSQL_TYPE_ENUM', 'Visible', '0'));
+SET @hidden=(IF(@col_type = 'MYSQL_TYPE_ENUM', 'System', '1'));
+CREATE TABLE sys.dd_hidden_tables (id bigint unsigned not null primary key, name varchar(64), schema_id bigint unsigned);
+INSERT INTO sys.dd_hidden_tables select id, name, schema_id FROM mysql.tables WHERE hidden=@hidden;
+UPDATE mysql.tables SET hidden=@visible WHERE hidden=@hidden AND schema_id = 1

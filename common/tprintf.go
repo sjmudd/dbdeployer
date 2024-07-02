@@ -113,7 +113,8 @@ func hasKey(sm StringMap, wantedKey string) bool {
 	return false
 }
 
-// Returns a unique, sorted list of all variables defined in a template string
+// GetVarsFromTemplate returns a unique, sorted list of all variables
+// defined in a template string.
 // FIXME: does not handle NESTED variables
 func GetVarsFromTemplate(tmpl string) []string {
 	var (
@@ -137,6 +138,8 @@ func GetVarsFromTemplate(tmpl string) []string {
 	return varList
 }
 
+// listToCommaSeparatedString converts []string into a comma separated
+// list of strings IF there's more than one entry.
 func listToCommaSeparatedString(list []string) string {
 	switch len(list) {
 	case 0:
@@ -174,9 +177,11 @@ func checkAllParametersProvided(template_name, tmpl string, data StringMap) erro
 			extraData = fmt.Sprintf("required data for %d fields were not populated: %s", len(fields), listToCommaSeparatedString(quoted))
 		}
 
-		return fmt.Errorf("template %q: %v",
+		return fmt.Errorf("template %q: %v\n=== TEMPLATE ===\n%v\n===data===\n%+v",
 			template_name,
 			extraData,
+			tmpl,
+			data,
 		)
 	}
 
@@ -187,33 +192,26 @@ func checkAllParametersProvided(template_name, tmpl string, data StringMap) erro
 // It checks that the data was safely initialized
 func SafeTemplateFill(template_name, tmpl string, data StringMap) (string, error) {
 
-	// Adds shell path, timestamp, version info, and empty engine clause if one was not provided
-	timestamp := time.Now()
-	shellPath, shellPathExists := data["ShellPath"]
-	_, engineClauseExists := data["EngineClause"]
-	_, timeStampExists := data["DateTime"]
-	_, versionExists := data["AppVersion"]
-	if !timeStampExists {
-		data["DateTime"] = timestamp.Format(time.UnixDate)
+	// Adds shell path, timestamp, version info, and empty engine clause if not provided
+	if _, timeStampExists := data["DateTime"]; !timeStampExists {
+		data["DateTime"] = time.Now().Format(time.UnixDate)
 	}
-	if !versionExists {
+	if _, versionExists := data["AppVersion"]; !versionExists {
 		data["AppVersion"] = VersionDef
 	}
-	if !engineClauseExists {
+	if _, engineClauseExists := data["EngineClause"]; !engineClauseExists {
 		data["EngineClause"] = ""
 	}
-	if shellPathExists {
-		if shellPath == "" {
-			shellPathExists = false
-		}
+	shellPath, shellPathExists := data["ShellPath"]
+	if shellPathExists && shellPath == "" {
+		shellPathExists = false
 	}
 	if !shellPathExists {
 		data["ShellPath"] = globals.ShellPathValue
 	}
 
-	// Checks that all data was initialized
+	// Checks that all data has been initialized correctly and all needed data is provided.
 	// This check is especially useful when introducing new templates
-
 	if err := checkAllParametersProvided(template_name, tmpl, data); err != nil {
 		return globals.EmptyString, err
 	}

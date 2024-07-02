@@ -28,8 +28,8 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 )
 
-// convert a part of a version to a numberic value for comparison
-// - return 0 if we get an error
+// intPart returns the numeric integer part of a version string to be used in comparisons
+// - return 0 if the conversion to an integer fails
 func intPart(s string) int {
 	i, err := strconv.Atoi(s)
 	if err != nil {
@@ -38,8 +38,11 @@ func intPart(s string) int {
 	return i
 }
 
+// Version is expected to a 3 digit version such as 8.4.0, 8.0.37,
+// 5.7.56, ... used for version comparisons
 type Version string
 
+// Less returns true if v < other
 func (v Version) Less(other Version) bool {
 	v1List := strings.Split(string(v), ".")
 	v2List := strings.Split(string(other), ".")
@@ -55,6 +58,7 @@ func (v Version) Less(other Version) bool {
 	return false
 }
 
+// Equal returns true if the "." split parts of the versions match
 func (v Version) Equal(other Version) bool {
 	v1List := strings.Split(string(v), ".")
 	v2List := strings.Split(string(other), ".")
@@ -72,9 +76,15 @@ func (v Version) Equal(other Version) bool {
 }
 
 // Map MySQL 8.4+ terms to the pre-8.4 equivalents
-// - this is for commands and also for field names
-// - commands are expected to be in upper case
-// - configuration settings are expected to be in lower case
+// - related to replication settings.
+// - this is for:
+//   - commands
+//   - column names
+//   - /etc/my.cnf or similar server settings
+// - SQL commands are expected to be in UPPER CASE
+// - variable settings are expected to be in lower case.
+// - columns values must match the value provided by MySQL (and
+//   some are mixed case)
 // - ensure all values are sorted alphabetically
 
 type OldAndNewNames struct {
@@ -138,27 +148,31 @@ var (
 		"Slave_SQL_Running": {"Slave_SQL_Running", "Replica_SQL_Running"},
 		// replication functions
 		"MASTER_POS_WAIT": {"MASTER_POS_WAIT", "SOURCE_POS_WAIT"},
+
+		"log-slave-updates": {"log-slave-updates", "log-replica-updates"},
 	}
 )
 
-func ConvertedMapByVersion(version string) common.StringMap {
+// MySQLNamesByVersion returns a map of K,V MySQL 8.4 or non-8.4
+// settings based on the provided version string
+func MySQLNamesByVersion(version string) common.StringMap {
 	var (
-		m         = make(common.StringMap)
-		version84 = mysql84Version(version)
+		isMySQL84 = isMySQL84Version(version)
+		names     = make(common.StringMap)
 	)
 
 	for key, value := range ToPreMySQL84Values {
-		if version84 {
-			m[key] = value.NewName
+		if isMySQL84 {
+			names[key] = value.NewName
 		} else {
-			m[key] = value.OldName
+			names[key] = value.OldName
 		}
 	}
-	return m
+	return names
 }
 
-// mysql84Version is true if the version provided is an 8.4 (compatible version)
-func mysql84Version(version string) bool {
+// isMySQL84Version is true if the version provided is an 8.4 (compatible version)
+func isMySQL84Version(version string) bool {
 	if Version(version).Less(Version("8.4.0")) {
 		return false
 	}
@@ -171,13 +185,11 @@ func mysql84Version(version string) bool {
 // Given the version and key lookup the value and return the new or old version account to the version.
 // - if the key is not fuond return a variable to indicate this.
 func VersionedValue(version string, key string) (string, error) {
-	var (
-		version84 = mysql84Version(version)
-	)
+	isMySQL84 := isMySQL84Version(version)
 
 	for k, value := range ToPreMySQL84Values {
 		if k == key {
-			if version84 {
+			if isMySQL84 {
 				return value.NewName, nil
 			} else {
 				return value.OldName, nil
@@ -185,18 +197,4 @@ func VersionedValue(version string, key string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("VersionedValue(%v,%v): key not found", version, key)
-}
-
-// generic84Pattern will take a version and old and new strings and
-// return the appropriate string based on 8.4 vs other versions
-//   - for the moment we assume a range of 8.4.0 >= v < 10.0.0 where the
-//     new string will be returned
-func generic84Pattern(version string, oldName string, newName string) string {
-	if Version(version).Less(Version("8.4.0")) {
-		return oldName
-	}
-	if Version(version).Less(Version("10.0.0")) {
-		return newName
-	}
-	return oldName
 }

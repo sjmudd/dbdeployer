@@ -12,24 +12,24 @@ cd "$SBDIR"
 
 if [ -n "$(is_running)" ]
 then
-    for D in $(echo "show databases " | ./use -B -N | grep -v "^mysql$" | grep -iv "^information_schema$" | grep -iv "^performance_schema" | grep -ivw "^sys")
+    for D in $(echo "SHOW DATABASES " | ./use -B -N | grep -v "^mysql$" | grep -iv "^information_schema$" | grep -iv "^performance_schema" | grep -ivw "^sys")
     do
-        echo "set sql_mode=ansi_quotes;drop database \"$D\"" | ./use
+        echo "SET sql_mode=ansi_quotes; DROP DATABASE \"$D\"" | ./use
     done
     VERSION={{.Version}}
     is_slave=$(ls data | grep relay)
     if [ -n "$is_slave" ]
     then
-        ./use -e "stop slave; reset slave;"
+        ./use -e "{{.StopSlaveCmd}}; {{.ResetSlaveCmd}};"
     fi
     if [[ "$VERSION" > "5.1" ]]
     then
         for T in general_log slow_log plugin
         do
-            exists_table=$(./use -e "show tables from mysql like '$T'")
+            exists_table=$(./use -e "SHOW TABLES FROM mysql LIKE '$T'")
             if [ -n "$exists_table" ]
             then
-                ./use -e "truncate mysql.$T"
+                ./use -e "TRUNCATE mysql.$T"
             fi
         done
     fi
@@ -38,7 +38,7 @@ fi
 is_master=$(ls data | grep 'mysql-bin')
 if [ -n "$is_master" ]
 then
-    ./use -e 'reset master'
+    ./use -e '{{.ResetMasterCmd}}'
 fi
 
 ./stop
