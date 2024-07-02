@@ -157,7 +157,7 @@ var (
 // settings based on the provided version string
 func MySQLNamesByVersion(version string) common.StringMap {
 	var (
-		isMySQL84 = isMySQL84Version(version)
+		isMySQL84 = isMySQL84CompatibleVersion(version)
 		names     = make(common.StringMap)
 	)
 
@@ -171,8 +171,9 @@ func MySQLNamesByVersion(version string) common.StringMap {
 	return names
 }
 
-// isMySQL84Version is true if the version provided is an 8.4 (compatible version)
-func isMySQL84Version(version string) bool {
+// isMySQL84CompatibleVersion is true if the version provided is an 8.4 (compatible version)
+// - this now includes 9.0+ as of 2024-07-01
+func isMySQL84CompatibleVersion(version string) bool {
 	if Version(version).Less(Version("8.4.0")) {
 		return false
 	}
@@ -185,7 +186,7 @@ func isMySQL84Version(version string) bool {
 // Given the version and key lookup the value and return the new or old version account to the version.
 // - if the key is not fuond return a variable to indicate this.
 func VersionedValue(version string, key string) (string, error) {
-	isMySQL84 := isMySQL84Version(version)
+	isMySQL84 := isMySQL84CompatibleVersion(version)
 
 	for k, value := range ToPreMySQL84Values {
 		if k == key {

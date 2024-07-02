@@ -418,7 +418,7 @@ var (
 	MinimumAdminAddressVersion                = NumericVersion{8, 0, 14}
 	MinimumMySQLShellEmbed                    = NumericVersion{8, 0, 4}
 	MinimumMySQL84ReplicationSettings         = NumericVersion{8, 4, 0}
-	MaximumMySQL84ReplicationSettings         = NumericVersion{8, 4, 99}
+	MaximumMySQL84ReplicationSettings         = NumericVersion{9, 99, 99}
 )
 
 const (
