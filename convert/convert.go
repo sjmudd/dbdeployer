@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2024 Simon J Mudd <sjmudd@pobox.com>
+// Copyright © 2024 The dbdeployer authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
