@@ -1,5 +1,6 @@
 
 # replication crash-safe options
+# FIXME - remove  master-info-repository in MySQL 8.4
 master-info-repository=table
 relay-log-info-repository=table
 relay-log-recovery=on

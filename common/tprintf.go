@@ -21,6 +21,8 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"sort"
+	"strings"
 	"text/template"
 	"time"
 
@@ -29,6 +31,25 @@ import (
 
 // StringMap defines the map of variable types, for brevity
 type StringMap map[string]interface{}
+
+// Add returns a StringMap of the original map with the sm2 map values added
+// - if there are duplicate/overlapping entries a warning will be printed.
+func (sm StringMap) Add(sm2 StringMap) StringMap {
+	m := make(StringMap)
+	for k, v := range sm {
+		m[k] = v
+	}
+	for k, v := range sm2 {
+		if v, ok := m[k]; ok {
+			fmt.Printf("WARNING: StringMap.Add(): key: %q already defined in StringMap with valuee: <%v>. Will overwrite with: <%v>\n",
+				k,
+				sm[k],
+				v)
+		}
+		m[k] = v
+	}
+	return m
+}
 
 // Given a multi-line string, this function removes leading
 // spaces from every line.
@@ -69,44 +90,6 @@ func GetBashPath(wantedValue string) (string, error) {
 	return shellPath, nil
 }
 
-// TemplateFill passed template string is formatted using its operands and returns the resulting string.
-// Spaces are added between operands when neither is a string.
-// Based on code from https://play.golang.org/p/COHKlB2RML
-// DEPRECATED: replaced by SafeTemplateFill
-func TemplateFill(tmpl string, data StringMap) string {
-
-	// Adds timestamp and version info
-	timestamp := time.Now()
-	shellPath, shellPathExists := data["ShellPath"]
-	_, timeStampExists := data["DateTime"]
-	_, versionExists := data["AppVersion"]
-	if !timeStampExists {
-		data["DateTime"] = timestamp.Format(time.UnixDate)
-	}
-	if !versionExists {
-		data["AppVersion"] = VersionDef
-	}
-	if shellPathExists {
-		if shellPath == "" {
-			shellPathExists = false
-		}
-	}
-	if !shellPathExists {
-		data["ShellPath"] = globals.ShellPathValue
-	}
-	// Creates a template
-	processTemplate := template.Must(template.New("tmp").Parse(tmpl))
-	buf := &bytes.Buffer{}
-
-	// If an error occurs, returns an empty string
-	if err := processTemplate.Execute(buf, data); err != nil {
-		return globals.EmptyString
-	}
-
-	// Returns the populated template
-	return buf.String()
-}
-
 // Returns true if a StringMap (or an inner StringMap) contains a given key
 func hasKey(sm StringMap, wantedKey string) bool {
 	for key, value := range sm {
@@ -130,67 +113,109 @@ func hasKey(sm StringMap, wantedKey string) bool {
 	return false
 }
 
-// Gets a list of all variables mentioned in a template
+// GetVarsFromTemplate returns a unique, sorted list of all variables
+// defined in a template string.
+// FIXME: does not handle NESTED variables
 func GetVarsFromTemplate(tmpl string) []string {
-	var varList []string
+	var (
+		varList = make([]string, 0)
+		varMap  = make(map[string]struct{})
+	)
 
 	reTemplateVar := regexp.MustCompile(`\{\{\.([^{]+)\}\}`)
 	captureList := reTemplateVar.FindAllStringSubmatch(tmpl, -1)
-	if len(captureList) > 0 {
-		for _, capture := range captureList {
-			varList = append(varList, capture[1])
+
+	for _, capture := range captureList {
+		varMap[capture[1]] = struct{}{}
+	}
+	// push map keys to list (unsorted)
+	for k := range varMap {
+		varList = append(varList, k)
+	}
+	// sort the keys
+	sort.Strings(varList)
+
+	return varList
+}
+
+// listToCommaSeparatedString converts []string into a comma separated
+// list of strings IF there's more than one entry.
+func listToCommaSeparatedString(list []string) string {
+	switch len(list) {
+	case 0:
+		return ""
+	case 1:
+		return list[0]
+	default:
+		return strings.Join(list, ", ")
+	}
+}
+
+// checkAllParametersProvided checks if all parameters defined in the template are provided in data
+// and returns an error indicating which entries are missing if appropriate.
+func checkAllParametersProvided(template_name, tmpl string, data StringMap) error {
+	var extraData string
+	fields := make(map[string]struct{})
+
+	for _, capture := range GetVarsFromTemplate(tmpl) {
+		if !hasKey(data, capture) {
+			fields[capture] = struct{}{}
 		}
 	}
-	return varList
+
+	if len(fields) > 0 {
+		quoted := make([]string, 0)
+
+		for field := range fields {
+			quoted = append(quoted, fmt.Sprintf("%q", field))
+		}
+
+		switch len(quoted) {
+		case 1:
+			extraData = fmt.Sprintf("required data for field %v was not populated", listToCommaSeparatedString(quoted))
+		default:
+			extraData = fmt.Sprintf("required data for %d fields were not populated: %s", len(fields), listToCommaSeparatedString(quoted))
+		}
+
+		return fmt.Errorf("template %q: %v\n=== TEMPLATE ===\n%v\n===data===\n%+v",
+			template_name,
+			extraData,
+			tmpl,
+			data,
+		)
+	}
+
+	return nil
 }
 
 // SafeTemplateFill passed template string is formatted using its operands and returns the resulting string.
 // It checks that the data was safely initialized
 func SafeTemplateFill(template_name, tmpl string, data StringMap) (string, error) {
 
-	// Adds shell path, timestamp, version info, and empty engine clause if one was not provided
-	timestamp := time.Now()
-	shellPath, shellPathExists := data["ShellPath"]
-	_, engineClauseExists := data["EngineClause"]
-	_, timeStampExists := data["DateTime"]
-	_, versionExists := data["AppVersion"]
-	if !timeStampExists {
-		data["DateTime"] = timestamp.Format(time.UnixDate)
+	// Adds shell path, timestamp, version info, and empty engine clause if not provided
+	if _, timeStampExists := data["DateTime"]; !timeStampExists {
+		data["DateTime"] = time.Now().Format(time.UnixDate)
 	}
-	if !versionExists {
+	if _, versionExists := data["AppVersion"]; !versionExists {
 		data["AppVersion"] = VersionDef
 	}
-	if !engineClauseExists {
+	if _, engineClauseExists := data["EngineClause"]; !engineClauseExists {
 		data["EngineClause"] = ""
 	}
-	if shellPathExists {
-		if shellPath == "" {
-			shellPathExists = false
-		}
+	shellPath, shellPathExists := data["ShellPath"]
+	if shellPathExists && shellPath == "" {
+		shellPathExists = false
 	}
 	if !shellPathExists {
 		data["ShellPath"] = globals.ShellPathValue
 	}
 
-	// Checks that all data was initialized
+	// Checks that all data has been initialized correctly and all needed data is provided.
 	// This check is especially useful when introducing new templates
-
-	/**/
-	// First, we get all variables in the pattern {{.VarName}}
-	varList := GetVarsFromTemplate(tmpl)
-	if len(varList) > 0 {
-		for _, capture := range varList {
-			// For each variable in the template text, we look whether it is
-			// in the map
-			if !hasKey(data, capture) {
-				//fmt.Printf("### >>> %#v<<<\n", data)
-				return globals.EmptyString,
-					fmt.Errorf("data field '%s' (intended for template '%s') was not initialized ",
-						capture, template_name)
-			}
-		}
+	if err := checkAllParametersProvided(template_name, tmpl, data); err != nil {
+		return globals.EmptyString, err
 	}
-	/**/
+
 	// Creates a template
 	processTemplate := template.Must(template.New("tmp").Parse(tmpl))
 	buf := &bytes.Buffer{}

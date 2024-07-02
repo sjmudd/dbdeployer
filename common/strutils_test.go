@@ -180,8 +180,8 @@ func TestIsEnvSet(t *testing.T) {
 		input    string
 		expected bool
 	}
-	var notExistingVar string = "MaryPoppinsLumpOfSugar"
-	var justSetVar string = "dbdeployer"
+	var notExistingVar = "MaryPoppinsLumpOfSugar"
+	var justSetVar = "dbdeployer"
 
 	err := os.Setenv(justSetVar, "excellent")
 	if err != nil {

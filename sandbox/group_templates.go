@@ -27,8 +27,8 @@ import (
 // Templates for group replication
 
 var (
-	//go:embed templates/group/init_nodes.gotxt
-	initNodesTemplate string
+	//go:embed templates/group/initialize_nodes.gotxt
+	initializeNodesTemplate string
 
 	//go:embed templates/group/check_nodes.gotxt
 	checkNodesTemplate string
@@ -37,10 +37,10 @@ var (
 	groupReplOptionsTemplate string
 
 	GroupTemplates = TemplateCollection{
-		globals.TmplInitNodes: TemplateDesc{
+		globals.TmplInitializeNodes: TemplateDesc{
 			Description: "Initialize group replication after deployment",
 			Notes:       "",
-			Contents:    initNodesTemplate,
+			Contents:    initializeNodesTemplate,
 		},
 		globals.TmplCheckNodes: TemplateDesc{
 			Description: "Checks the status of group replication",

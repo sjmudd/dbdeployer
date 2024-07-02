@@ -28,7 +28,7 @@ import (
 	"github.com/datacharmer/dbdeployer/globals"
 )
 
-func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 
 	err := common.CheckPrerequisites("PXC", globals.NeededPxcExecutables)
@@ -228,8 +228,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sandboxDef.ReplOptions = fmt.Sprintf("%s\nlog_slave_updates=ON\n", sandboxDef.ReplOptions)
 	}
 	baseReplicationOptions := sandboxDef.ReplOptions
-	var groupCommunication string = "gcomm://"
-	//var auxGroupCommunication string = ""
+	var groupCommunication = "gcomm://"
 	var sstMethod = "rsync"
 
 	// XtraDB 8.0.15+
@@ -355,7 +354,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sandboxDef.NodeNum = i
 		// common.CondPrintf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
-		execList, err := CreateChildSandbox(sandboxDef)
+		execList, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
@@ -405,7 +404,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
 			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
 			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
@@ -430,7 +429,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
 			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
 			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
@@ -441,15 +440,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptStartAll, globals.TmplPxcStart, true},
 			{globals.ScriptCheckNodes, globals.TmplPxcCheckNodes, true},
 		},
 	}
 
 	for _, sb := range []ScriptBatch{sbMultiple, sbRepl, sbPxc} {
-		err := writeScripts(sb)
-		if err != nil {
+		if err := sb.WriteScripts("sandbox.go:451"); err != nil {
 			return err
 		}
 	}

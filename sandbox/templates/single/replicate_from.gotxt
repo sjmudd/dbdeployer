@@ -69,8 +69,8 @@ then
     exit 1
 fi
 
-master_server_id=$($master_use_script -BN -e 'select @@server_id')
-slave_server_id=$($SBDIR/use -BN -e 'select @@server_id')
+master_server_id=$($master_use_script -BN -e 'SELECT @@server_id')
+slave_server_id=$($SBDIR/use -BN -e 'SELECT @@server_id')
 
 if [ "$master_server_id" == "$slave_server_id" ]
 then
@@ -101,8 +101,8 @@ fi
 
 if [ -n "$can_use_gtid" ]
 then
-    master_server_uuid=$($master_use_script -BN -e 'select @@server_uuid')
-    slave_server_uuid=$($SBDIR/use -BN -e 'select @@server_uuid')
+    master_server_uuid=$($master_use_script -BN -e 'SELECT @@server_uuid')
+    slave_server_uuid=$($SBDIR/use -BN -e 'SELECT @@server_uuid')
 
     if [ "$master_server_uuid" == "$slave_server_uuid" ]
     then
@@ -113,8 +113,8 @@ then
         exit 1
     fi
 
-    master_using_gtid=$($master_use_script -BN -e "select @@gtid_mode"| grep '^ON$')
-    slave_using_gtid=$($SBDIR/use -BN -e "select @@gtid_mode"| grep '^ON$')
+    master_using_gtid=$($master_use_script -BN -e "SELECT @@gtid_mode"| grep '^ON$')
+    slave_using_gtid=$($SBDIR/use -BN -e "SELECT @@gtid_mode"| grep '^ON$')
     if [ -n "$master_using_gtid" ]
     then
         if [ -n "$slave_using_gtid" ]
@@ -150,13 +150,13 @@ then
 	if [ "$master_short_version" == "5.7" -o "$master_short_version" == "5.6" ]
     then
         echo "resetting master (needed in version < 8.0)"
-        $master_use_script -e "reset master"
+        $master_use_script -e "{{.ResetMasterCmd}}"
     fi
 fi
 
 master_status=/tmp/mstatus$$
 
-$master_use_script -e 'show master status\G' > $master_status
+$master_use_script -e '{{.ShowMasterStatusCmd}}\G' > $master_status
 binlog_file=$(grep File < $master_status | awk '{print $2}')
 binlog_pos=$(grep Position < $master_status | awk '{print $2}')
 rm -f $master_status
@@ -212,9 +212,9 @@ fi
 
 if [ -n "$using_gtid" ]
 then
-    connection_string=$(cat $master_connection ; echo -n ", master_auto_position=1")
+    connection_string=$(cat $master_connection ; echo -n ", {{.MASTER_AUTO_POSITION}}=1")
 else 
-    connection_string=$(cat $master_connection ; echo -n ', master_log_file="'$binlog_file'", master_log_pos='$binlog_pos )
+    connection_string=$(cat $master_connection ; echo -n ', {{.MASTER_LOG_FILE}}="'$binlog_file'", {{.MASTER_LOG_POS}}='$binlog_pos )
     if [ -f clone_replication.sql ]
     then
         connection_string=$(cat $master_connection ; echo -n ", " ; cat clone_replication.sql)
@@ -224,7 +224,7 @@ fi
 # If master is 8.0, the slave must be at least 8.0
 if [ "$master_short_version" == "8.0" ]
 then
-    connection_string="$connection_string, GET_MASTER_PUBLIC_KEY=1"
+    connection_string="$connection_string, {{.GET_MASTER_PUBLIC_KEY}}=1"
 fi
 
 echo "Connecting to $master_path"
@@ -236,12 +236,12 @@ if [ -f clone_replication.sql ]
 then
     rm -f clone_replication.sql
 fi
-$SBDIR/use -v -e 'start slave'
-$SBDIR/use -v -e 'SHOW SLAVE STATUS\G' | grep "\(Running:\|Master_Log_Pos\|\<Master_Log_File\|Retrieved\|Executed\|Auto_Position\)"
+$SBDIR/use -v -e '{{.StartSlaveCmd}}'
+$SBDIR/use -v -e '{{.ShowSlaveStatusCmd}}\G' | grep "\(Running:\|{{.Master_Log_Pos}}\|\<{{.Master_Log_File}}\|Retrieved\|Executed\|Auto_Position\)"
 date > $active_replication
 echo "Connected to $master_path" >> $active_replication
 echo "#!{{.ShellPath}}" > $remove_replication
-echo "$SBDIR/use -v -e 'stop slave; reset slave'" >> $remove_replication
+echo "$SBDIR/use -v -e '{{.StopSlaveCmd}}; {{.ResetSlaveCmd}}'" >> $remove_replication
 echo "rm -f $active_replication" >> $remove_replication
 chmod +x $remove_replication
 

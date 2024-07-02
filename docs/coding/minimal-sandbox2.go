@@ -101,7 +101,7 @@ func main() {
 	}
 
 	// Calls the sandbox creation
-	err := sandbox.CreateStandaloneSandbox(sdef)
+	_, err := sandbox.CreateSingleSandbox(sdef)
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
@@ -112,7 +112,7 @@ func main() {
 	sdef.Port = port2
 
 	// Calls the sandbox creation for the second sandbox
-	err = sandbox.CreateStandaloneSandbox(sdef)
+	_, err = sandbox.CreateSingleSandbox(sdef)
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}

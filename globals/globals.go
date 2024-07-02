@@ -400,6 +400,7 @@ var (
 	MinimumRolesVersion                       = NumericVersion{8, 0, 0}
 	MinimumDataDictionaryVersion              = NumericVersion{8, 0, 0}
 	MinimumNativeAuthPluginVersion            = NumericVersion{8, 0, 4}
+	MaximumNativeAuthPluginVersion            = NumericVersion{8, 0, 99}
 	MinimumMysqlxDefaultVersion               = NumericVersion{8, 0, 11}
 	MariaDbMinimumGtidVersion                 = NumericVersion{10, 0, 0}
 	MariaDbMinimumMultiSourceVersion          = NumericVersion{10, 0, 0}
@@ -416,6 +417,8 @@ var (
 	MinimumRootAuthVersion                    = NumericVersion{10, 4, 3}
 	MinimumAdminAddressVersion                = NumericVersion{8, 0, 14}
 	MinimumMySQLShellEmbed                    = NumericVersion{8, 0, 4}
+	MinimumMySQL84ReplicationSettings         = NumericVersion{8, 4, 0}
+	MaximumMySQL84ReplicationSettings         = NumericVersion{9, 99, 99}
 )
 
 const (

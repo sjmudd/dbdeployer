@@ -447,7 +447,7 @@ func singleSandbox(cmd *cobra.Command, args []string) {
 	}
 	// When deploying a single sandbox, we disable concurrency
 	sd.RunConcurrently = false
-	err = sandbox.CreateStandaloneSandbox(sd)
+	_, err = sandbox.CreateSingleSandbox(sd)
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}

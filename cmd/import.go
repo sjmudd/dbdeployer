@@ -109,7 +109,7 @@ func importSingleSandbox(cmd *cobra.Command, args []string) {
 	sd.RplUser = user
 	sd.RplPassword = password
 
-	err = sandbox.CreateStandaloneSandbox(sd)
+	_, err = sandbox.CreateSingleSandbox(sd)
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}

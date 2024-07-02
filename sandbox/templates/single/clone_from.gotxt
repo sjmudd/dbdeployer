@@ -43,8 +43,8 @@ then
     exit 1
 fi
 
-donor_os=$($donor_use -BN -e 'select @@version_compile_os')
-recipient_os=$(./use -BN -e 'select @@version_compile_os')
+donor_os=$($donor_use -BN -e 'SELECT @@version_compile_os')
+recipient_os=$(./use -BN -e 'SELECT @@version_compile_os')
 if [ "$donor_os" != "$recipient_os" ]
 then
     echo "Donor OS ($donor_os) and recipient OS ($recipient_os) are different" 
@@ -69,18 +69,18 @@ then
     exit 1
 fi
 
-clone_installed=$(./use -BN -e 'show plugins' | grep clone)
+clone_installed=$(./use -BN -e 'SHOW PLUGINS' | grep clone)
 if [ -z "$clone_installed" ]
 then
     echo "Installing clone plugin in recipient sandbox"
-    ./use -e "install plugin clone soname 'mysql_clone.so'"
+    ./use -e "INSTALL PLUGIN clone SONAME 'mysql_clone.so'"
 fi
 
-donor_clone_installed=$($donor_use -BN -e 'show plugins' | grep clone)
+donor_clone_installed=$($donor_use -BN -e 'SHOW PLUGINS' | grep clone)
 if [ -z "$donor_clone_installed" ]
 then
     echo "Installing clone plugin in donor sandbox"
-    $donor_use -e "install plugin clone soname 'mysql_clone.so'"
+    $donor_use -e "INSTALL PLUGIN clone SONAME 'mysql_clone.so'"
 fi
 
 echo "Cloning from $donor_sandbox"
@@ -112,7 +112,7 @@ connected=
 sleep 3
 while [ -z "$connected" ]
 do
-    response=$(./use -BN -e 'select 1234')
+    response=$(./use -BN -e 'SELECT 1234')
     if [ "$response" == "1234" ]
     then
         connected=1
@@ -130,11 +130,11 @@ do
 done
 echo ""
 
-binlog_file=$(./use -BN -e 'select BINLOG_FILE from performance_schema.clone_status')
-binlog_position=$(./use -BN -e 'select BINLOG_POSITION from performance_schema.clone_status')
+binlog_file=$(./use -BN -e 'SELECT BINLOG_FILE FROM performance_schema.clone_status')
+binlog_position=$(./use -BN -e 'SELECT BINLOG_POSITION FROM performance_schema.clone_status')
 if [ -z "$binlog_file" -o -z "$binlog_position" ]
 then
     echo "Master binary log info not found after clone"  
     exit 1
 fi
-echo "MASTER_LOG_FILE=\"$binlog_file\", MASTER_LOG_POS=$binlog_position" > clone_replication.sql
+echo "{{.MASTER_LOG_FILE}}=\"$binlog_file\", {{.MASTER_LOG_POS}}=$binlog_position" > clone_replication.sql

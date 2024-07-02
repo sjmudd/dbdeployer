@@ -6,14 +6,14 @@ echo "REPLICATION  $SBDIR"
 mstatus=$($SBDIR/{{.MasterLabel}}/status)
 if [ -f $SBDIR/{{.MasterLabel}}/data/mysql_sandbox{{.MasterPort}}.pid ]
 then
-	mport=$($SBDIR/{{.MasterLabel}}/use -BN -e "show variables like 'port'")
+	mport=$($SBDIR/{{.MasterLabel}}/use -BN -e "SHOW VARIABLES LIKE 'port'")
 fi
 echo "{{.MasterLabel}} : $mstatus  -  $mport ({{.MasterPort}})"
 {{ range .Slaves }}
 nstatus=$($SBDIR/{{.NodeLabel}}{{.Node}}/status )
 if [ -f $SBDIR/{{.NodeLabel}}{{.Node}}/data/mysql_sandbox{{.NodePort}}.pid ]
 then
-	nport=$($SBDIR/{{.NodeLabel}}{{.Node}}/use -BN -e "show variables like 'port'")
+	nport=$($SBDIR/{{.NodeLabel}}{{.Node}}/use -BN -e "SHOW VARIABLES LIKE 'port'")
 fi
 echo "{{.NodeLabel}}{{.Node}} : $nstatus  -  $nport ({{.NodePort}})"
 {{end}}

@@ -63,7 +63,7 @@ const (
 	TmplTestSbAll              = "test_sb_all"
 	TmplTestReplication        = "test_replication"
 	TmplMultiSource            = "multi_source"
-	TmplInitSlaves             = "init_slaves"
+	TmplInitializeSlaves       = "initalialize_slaves"
 	TmplClearAll               = "clear_all"
 	TmplSlaveAdmin             = "slave_admin"
 	TmplCheckMultiSource       = "check_multi_source"
@@ -165,7 +165,7 @@ const (
 	TmplTidbMyCnf      = "tidb_my_cnf"
 
 	// group
-	TmplInitNodes        = "init_nodes"
+	TmplInitializeNodes  = "initialize_nodes"
 	TmplCheckNodes       = "check_nodes"
 	TmplGroupReplOptions = "group_repl_options"
 )

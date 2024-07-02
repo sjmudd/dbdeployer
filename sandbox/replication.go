@@ -23,6 +23,7 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
+	"github.com/datacharmer/dbdeployer/convert"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/dustin/go-humanize/english"
@@ -102,11 +103,12 @@ func computeBaseport(proposed int) int {
 	return proposed
 }
 
-func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
+	var (
+		execLists []concurrent.ExecutionList
+		logger    *defaults.Logger
+	)
 
-	var execLists []concurrent.ExecutionList
-
-	var logger *defaults.Logger
 	if sandboxDef.Logger != nil {
 		logger = sandboxDef.Logger
 	} else {
@@ -166,7 +168,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if err != nil {
 		return err
 	}
-	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
+	logger.Printf("DEBUG: Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Replication Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", sandboxDef.SandboxDir)
 	sandboxDef.Port = basePort + 1
@@ -177,20 +179,29 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	changeMasterExtra := ""
 	masterAutoPosition := ""
 	if sandboxDef.GtidOptions != "" {
-		masterAutoPosition += ", MASTER_AUTO_POSITION=1"
-		logger.Printf("Adding MASTER_AUTO_POSITION to slaves setup\n")
+		name, err := convert.VersionedValue(sandboxDef.Version, "MASTER_AUTO_POSITION")
+		if err != nil {
+			return err
+		}
+		masterAutoPosition += fmt.Sprintf(", %v=1", name)
+		logger.Printf("Adding %v to replica setup\n", name)
 	}
-	// 8.0.11
-	// isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
-	isMinimumNativeAuthPlugin, err := common.HasCapability(sandboxDef.Flavor, common.NativeAuth, sandboxDef.Version)
+
+	hasNativeAuthPlugin, err := common.HasCapability(sandboxDef.Flavor, common.NativeAuth, sandboxDef.Version)
 	if err != nil {
 		return err
 	}
-	if isMinimumNativeAuthPlugin {
+	if hasNativeAuthPlugin {
 		if !sandboxDef.NativeAuthPlugin {
-			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, "GET_MASTER_PUBLIC_KEY=1")
+			name, err := convert.VersionedValue(sandboxDef.Version, "GET_MASTER_PUBLIC_KEY")
+			if err != nil {
+				return err
+			}
+
+			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, fmt.Sprintf("%v=1", name))
 		}
 	}
+
 	slaves := nodes - 1
 	masterAbbr := defaults.Defaults().MasterAbbr
 	masterLabel := defaults.Defaults().MasterName
@@ -200,21 +211,21 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 
 	changeMasterExtra = setChangeMasterProperties(changeMasterExtra, sandboxDef.ChangeMasterOptions, logger)
 	var data = common.StringMap{
-		"ShellPath":          sandboxDef.ShellPath,
-		"Copyright":          globals.ShellScriptCopyright,
 		"AppVersion":         common.VersionDef,
+		"ChangeMasterExtra":  changeMasterExtra,
+		"Copyright":          globals.ShellScriptCopyright,
 		"DateTime":           timestamp.Format(time.UnixDate),
-		"SandboxDir":         sandboxDef.SandboxDir,
+		"MasterAbbr":         masterAbbr,
+		"MasterAutoPosition": masterAutoPosition,
+		"MasterIp":           masterIp,
 		"MasterLabel":        masterLabel,
 		"MasterPort":         sandboxDef.Port,
-		"SlaveLabel":         slaveLabel,
-		"MasterAbbr":         masterAbbr,
-		"MasterIp":           masterIp,
-		"RplUser":            sandboxDef.RplUser,
 		"RplPassword":        sandboxDef.RplPassword,
+		"RplUser":            sandboxDef.RplUser,
+		"SandboxDir":         sandboxDef.SandboxDir,
+		"ShellPath":          sandboxDef.ShellPath,
 		"SlaveAbbr":          slaveAbbr,
-		"ChangeMasterExtra":  changeMasterExtra,
-		"MasterAutoPosition": masterAutoPosition,
+		"SlaveLabel":         slaveLabel,
 		"Slaves":             []common.StringMap{},
 	}
 
@@ -234,7 +245,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	sandboxDef.SBType = "replication-node"
 	sandboxDef.ReadOnlyOptions = ""
 	logger.Printf("Creating single sandbox for master\n")
-	execList, err := CreateChildSandbox(sandboxDef)
+	execList, err := CreateSingleSandbox(sandboxDef)
 	if err != nil {
 		return fmt.Errorf(globals.ErrCreatingSandbox, err)
 	}
@@ -350,7 +361,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			sandboxDef.SemiSyncOptions = SingleTemplates[globals.TmplSemisyncSlaveOptions].Contents
 		}
 		logger.Printf("Creating single sandbox for slave %d\n", i)
-		execListNode, err := CreateChildSandbox(sandboxDef)
+		execListNode, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
@@ -372,22 +383,38 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		}
 		logger.Printf("Defining replication node data: %v\n", stringMapToJson(dataSlave))
 		logger.Printf("Create slave script %d\n", i)
-		err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
-			[]ScriptDef{
-				{fmt.Sprintf("%s%d", slaveAbbr, i), globals.TmplSlave, true},
-				{fmt.Sprintf("n%d", i+1), globals.TmplSlave, true},
-			}})
-		if err != nil {
+
+		scripts := []Script{
+			{fmt.Sprintf("%s%d", slaveAbbr, i), globals.TmplSlave, true},
+			{fmt.Sprintf("n%d", i+1), globals.TmplSlave, true},
+		}
+
+		sb := ScriptBatch{
+			ReplicationTemplates,
+			logger,
+			sandboxDef.SandboxDir,
+			dataSlave,
+			scripts,
+		}
+		if err := sb.WriteScripts("replication.go:414"); err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
+
+			scripts = []Script{
+				{fmt.Sprintf("%sa%d", slaveAbbr, i), globals.TmplSlaveAdmin, true},
+				{fmt.Sprintf("na%d", i+1), globals.TmplSlaveAdmin, true},
+			}
+
 			logger.Printf("Create slave admin script %d\n", i)
-			err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
-				[]ScriptDef{
-					{fmt.Sprintf("%sa%d", slaveAbbr, i), globals.TmplSlaveAdmin, true},
-					{fmt.Sprintf("na%d", i+1), globals.TmplSlaveAdmin, true},
-				}})
-			if err != nil {
+			sb := ScriptBatch{
+				ReplicationTemplates,
+				logger,
+				sandboxDef.SandboxDir,
+				dataSlave,
+				scripts,
+			}
+			if err := sb.WriteScripts("replication.go:432"); err != nil {
 				return err
 			}
 		}
@@ -411,48 +438,45 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	execAllSlaves := "exec_all_" + slavePlural
 	execAllMasters := "exec_all_" + masterPlural
 
-	sb := ScriptBatch{
-		tc:         ReplicationTemplates,
-		logger:     logger,
-		sandboxDir: sandboxDef.SandboxDir,
-		data:       data,
-		scripts: []ScriptDef{
-			{globals.ScriptStartAll, globals.TmplStartAll, true},
-			{globals.ScriptRestartAll, globals.TmplRestartAll, true},
-			{globals.ScriptStatusAll, globals.TmplStatusAll, true},
-			{globals.ScriptTestSbAll, globals.TmplTestSbAll, true},
-			{globals.ScriptStopAll, globals.TmplStopAll, true},
-			{globals.ScriptClearAll, globals.TmplClearAll, true},
-			{globals.ScriptSendKillAll, globals.TmplSendKillAll, true},
-			{globals.ScriptUseAll, globals.TmplUseAll, true},
-			{globals.ScriptExecAll, globals.TmplExecAll, true},
-			{globals.ScriptMetadataAll, globals.TmplMetadataAll, true},
-			{useAllSlaves, globals.TmplUseAllSlaves, true},
-			{useAllMasters, globals.TmplUseAllMasters, true},
-			{initializeSlaves, globals.TmplInitSlaves, true},
-			{checkSlaves, globals.TmplCheckSlaves, true},
-			{masterAbbr, globals.TmplMaster, true},
-			{execAllSlaves, globals.TmplExecAllSlaves, true},
-			{execAllMasters, globals.TmplExecAllMasters, true},
-			{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
-			{"n1", globals.TmplMaster, true},
-			{"test_replication", globals.TmplTestReplication, true},
-			{globals.ScriptReplicateFrom, globals.TmplReplReplicateFrom, true},
-			{globals.ScriptSysbench, globals.TmplReplSysbench, true},
-			{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
-		},
+	scripts := []Script{
+		{globals.ScriptStartAll, globals.TmplStartAll, true},
+		{globals.ScriptRestartAll, globals.TmplRestartAll, true},
+		{globals.ScriptStatusAll, globals.TmplStatusAll, true},
+		{globals.ScriptTestSbAll, globals.TmplTestSbAll, true},
+		{globals.ScriptStopAll, globals.TmplStopAll, true},
+		{globals.ScriptClearAll, globals.TmplClearAll, true},
+		{globals.ScriptSendKillAll, globals.TmplSendKillAll, true},
+		{globals.ScriptUseAll, globals.TmplUseAll, true},
+		{globals.ScriptExecAll, globals.TmplExecAll, true},
+		{globals.ScriptMetadataAll, globals.TmplMetadataAll, true},
+		{useAllSlaves, globals.TmplUseAllSlaves, true},
+		{useAllMasters, globals.TmplUseAllMasters, true},
+		{initializeSlaves, globals.TmplInitializeSlaves, true},
+		{checkSlaves, globals.TmplCheckSlaves, true},
+		{masterAbbr, globals.TmplMaster, true},
+		{execAllSlaves, globals.TmplExecAllSlaves, true},
+		{execAllMasters, globals.TmplExecAllMasters, true},
+		{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
+		{"n1", globals.TmplMaster, true},
+		{"test_replication", globals.TmplTestReplication, true},
+		{globals.ScriptReplicateFrom, globals.TmplReplReplicateFrom, true},
+		{globals.ScriptSysbench, globals.TmplReplSysbench, true},
+		{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
 	}
 	if sandboxDef.SemiSyncOptions != "" {
-		sb.scripts = append(sb.scripts, ScriptDef{"post_initialization", globals.TmplSemiSyncStart, true})
+		scripts = append(scripts, Script{"post_initialization", globals.TmplSemiSyncStart, true})
 	}
 	if sandboxDef.EnableAdminAddress {
-		sb.scripts = append(sb.scripts, ScriptDef{masterAbbr + "a", globals.TmplMasterAdmin, true})
-		sb.scripts = append(sb.scripts, ScriptDef{"na1", globals.TmplMasterAdmin, true})
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true})
+		scripts = append(scripts,
+			Script{masterAbbr + "a", globals.TmplMasterAdmin, true},
+			Script{"na1", globals.TmplMasterAdmin, true},
+			Script{globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true},
+		)
 	}
+
 	logger.Printf("Create replication scripts\n")
-	err = writeScripts(sb)
-	if err != nil {
+	sb := ScriptBatch{tc: ReplicationTemplates, logger: logger, sandboxDir: sandboxDef.SandboxDir, data: data, scripts: scripts}
+	if err := sb.WriteScripts("replication.go:494"); err != nil {
 		return err
 	}
 	logger.Printf("Run concurrent sandbox scripts \n")
@@ -471,7 +495,6 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	return nil
 }
 
-// func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
 func CreateReplicationSandbox(sdef SandboxDef, origin string, replData ReplicationData) error {
 	if !common.IsIPV4(replData.MasterIp) {
 		return fmt.Errorf("IP %s is not a valid IPV4", replData.MasterIp)
@@ -503,7 +526,6 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, replData Replicati
 		}
 	case globals.FanInLabel:
 		// 5.7.9
-		// isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
 		isMinimumMultiSource, err := common.HasCapability(sdef.Flavor, common.MultiSource, sdef.Version)
 		if err != nil {
 			return err
@@ -515,7 +537,6 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, replData Replicati
 	case globals.AllMastersLabel:
 		// 5.7.9
 
-		// isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
 		isMinimumMultiSource, err := common.HasCapability(sdef.Flavor, common.MultiSource, sdef.Version)
 		if err != nil {
 			return err
@@ -564,17 +585,17 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, replData Replicati
 	var err error
 	switch replData.Topology {
 	case globals.MasterSlaveLabel:
-		err = CreateMasterSlaveReplication(sdef, origin, replData.Nodes, replData.MasterIp)
+		err = CreateMasterSlaveReplication(sdef, replData.Nodes, replData.MasterIp)
 	case globals.GroupLabel:
-		err = CreateGroupReplication(sdef, origin, replData.Nodes, replData.MasterIp)
+		err = CreateGroupReplication(sdef, replData.Nodes, replData.MasterIp)
 	case globals.FanInLabel:
 		err = CreateFanInReplication(sdef, origin, replData.Nodes, replData.MasterIp, replData.MasterList, replData.SlaveList)
 	case globals.AllMastersLabel:
 		err = CreateAllMastersReplication(sdef, origin, replData.Nodes, replData.MasterIp)
 	case globals.PxcLabel:
-		err = CreatePxcReplication(sdef, origin, replData.Nodes, replData.MasterIp)
+		err = CreatePxcReplication(sdef, replData.Nodes, replData.MasterIp)
 	case globals.NdbLabel:
-		err = CreateNdbReplication(sdef, origin, replData.Nodes, replData.NdbNodes, replData.MasterIp)
+		err = CreateNdbReplication(sdef, replData.Nodes, replData.NdbNodes, replData.MasterIp)
 	}
 	return err
 }

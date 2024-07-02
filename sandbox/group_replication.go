@@ -24,6 +24,7 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
+	"github.com/datacharmer/dbdeployer/convert"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/dustin/go-humanize/english"
@@ -94,7 +95,7 @@ func getBaseAdminPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 	return baseAdminPort, nil
 }
 
-func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 
@@ -238,6 +239,10 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		"StopNodeList":      stopNodeList,
 		"Nodes":             []common.StringMap{},
 	}
+
+	// Add the MySQL 8.4 specific override settings
+	data = data.Add(convert.MySQLNamesByVersion(sandboxDef.Version))
+
 	connectionString := ""
 	for i := 0; i < nodes; i++ {
 		groupPort := baseGroupPort + i + 1
@@ -302,6 +307,9 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			"StopNodeList":      stopNodeList,
 			"RplUser":           sandboxDef.RplUser,
 			"RplPassword":       sandboxDef.RplPassword})
+
+		// Add the MySQL 8.4 specific override settings for GR members too.
+		data["Nodes"] = append(data["Nodes"].([]common.StringMap), convert.MySQLNamesByVersion(sandboxDef.Version))
 
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.MorePorts = []int{groupPort}
@@ -369,7 +377,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.NodeNum = i
 		// common.CondPrintf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
-		execList, err := CreateChildSandbox(sandboxDef)
+		execList, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
@@ -425,7 +433,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptStartAll, globals.TmplStartMulti, true},
 			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
 			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
@@ -446,7 +454,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
 			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
 			{execAllMasters, globals.TmplMultiSourceExecMasters, true},
@@ -460,15 +468,15 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
-			{globals.ScriptInitializeNodes, globals.TmplInitNodes, true},
+		scripts: []Script{
+			{globals.ScriptInitializeNodes, globals.TmplInitializeNodes, true},
+
 			{globals.ScriptCheckNodes, globals.TmplCheckNodes, true},
 		},
 	}
 
 	for _, sb := range []ScriptBatch{sbMultiple, sbRepl, sbGroup} {
-		err := writeScripts(sb)
-		if err != nil {
+		if err := sb.WriteScripts("group_replication.go:479"); err != nil {
 			return err
 		}
 	}

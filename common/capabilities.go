@@ -84,6 +84,7 @@ const (
 	EmbedMySQLShell             = "embed-mysql-shell"
 	CloneServer                 = "clone-server"
 	CircularReplication         = "circular-replication"
+	MySQL84ReplicationSettings  = "mysql84ReplicationSettings" // 8.4 specific replication commands / settings and column names (different to 8.0)
 )
 
 var MySQLCapabilities = Capabilities{
@@ -154,6 +155,7 @@ var MySQLCapabilities = Capabilities{
 		NativeAuth: {
 			Description: "Native Authentication plugin",
 			Since:       globals.MinimumNativeAuthPluginVersion,
+			Until:       globals.MaximumNativeAuthPluginVersion,
 		},
 		DataDict: {
 			Description: "data dictionary",
@@ -179,6 +181,11 @@ var MySQLCapabilities = Capabilities{
 		CircularReplication: {
 			Description: "Allow circular replication",
 			Since:       globals.MinimumMySQLAutoIncrementIncrement,
+		},
+		MySQL84ReplicationSettings: {
+			Description: "MySQL 8.4 master/slave less replication commands / settings and column names",
+			Since:       globals.MinimumMySQL84ReplicationSettings,
+			Until:       globals.MaximumMySQL84ReplicationSettings,
 		},
 	},
 }

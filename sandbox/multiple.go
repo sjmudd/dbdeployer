@@ -210,7 +210,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 			logger.Printf("installing and starting %s %d", nodeLabel, i)
 		}
 		logger.Printf("Creating single sandbox for node %d\n", i)
-		execList, err := CreateChildSandbox(sandboxDef)
+		execList, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			return emptyStringMap, fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
@@ -256,7 +256,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		logger:     logger,
 		sandboxDir: sandboxDef.SandboxDir,
 		data:       data,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptStartAll, globals.TmplStartMulti, true},
 			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
 			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
@@ -273,10 +273,10 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		},
 	}
 
-	err = writeScripts(sbMultiple)
-	if err != nil {
+	if err := sbMultiple.WriteScripts("multiple.go:276"); err != nil {
 		return data, err
 	}
+	fmt.Printf("DEBUG: - checking EnableAdminAddress: %v\n", sandboxDef.EnableAdminAddress)
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
 		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,

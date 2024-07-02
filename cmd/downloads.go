@@ -559,8 +559,9 @@ func addTarballToCollection(cmd *cobra.Command, args []string) {
 	ops.DisplayTarball(tarballDesc)
 }
 
-// Provide the URL and with that attempt to determine the other
-// parameters automatically so we can add an entry to the json file
+// addUrlToCollection downloads the file in the given URL and
+// extracts the information from it so we can add the JSON file to
+// the json tarball list.
 func addUrlToCollection(cmd *cobra.Command, args []string) {
 	var (
 		err        error

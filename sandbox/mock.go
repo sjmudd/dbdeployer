@@ -95,7 +95,7 @@ func RemoveMockEnvironment(mockUpperDir string) error {
 
 type MockFileSet struct {
 	dir     string
-	fileSet []ScriptDef
+	fileSet []Script
 }
 
 func CreateCustomMockVersion(version string, fileSet []MockFileSet) error {
@@ -126,14 +126,14 @@ func CreateCustomMockVersion(version string, fileSet []MockFileSet) error {
 		if err != nil {
 			return errors.Wrapf(err, globals.ErrCreatingDirectory, dir, err)
 		}
-		err = writeScripts(ScriptBatch{
+		sb := ScriptBatch{
 			tc:         MockTemplates,
 			data:       emptyData,
 			sandboxDir: dir,
 			logger:     logger,
 			scripts:    fs.fileSet,
-		})
-		if err != nil {
+		}
+		if err := sb.WriteScripts("mock.go:136"); err != nil {
 			return err
 		}
 	}
@@ -157,7 +157,7 @@ func MySQLMockSet(debug bool) []MockFileSet {
 
 	libFileSet := MockFileSet{
 		"lib",
-		[]ScriptDef{
+		[]Script{
 			{libmysqlclientFileName, noOpMockTemplateName, false},
 		},
 	}
@@ -167,7 +167,7 @@ func MySQLMockSet(debug bool) []MockFileSet {
 	}
 	binFileSet := MockFileSet{
 		"bin",
-		[]ScriptDef{
+		[]Script{
 			{mysqld, noOpMockTemplateName, true},
 			{globals.FnMysql, noOpMockTemplateName, true},
 			{globals.FnMysqldSafe, globals.TmplMysqldSafeMock, true},
@@ -175,7 +175,7 @@ func MySQLMockSet(debug bool) []MockFileSet {
 	}
 	scriptsFileSet := MockFileSet{
 		"scripts",
-		[]ScriptDef{
+		[]Script{
 			{globals.FnMysqlInstallDb, noOpMockTemplateName, true},
 		},
 	}

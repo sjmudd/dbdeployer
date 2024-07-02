@@ -30,7 +30,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNodes int, masterIp string) error {
+func CreateNdbReplication(sandboxDef SandboxDef, nodes int, ndbNodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 
@@ -272,7 +272,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		sandboxDef.SBType = "ndb-node"
 		sandboxDef.NodeNum = i
 		logger.Printf("Create single sandbox for node %d\n", i)
-		execList, err := CreateChildSandbox(sandboxDef)
+		execList, err := CreateSingleSandbox(sandboxDef)
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
@@ -334,7 +334,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{globals.ScriptStartAll, globals.TmplStartMulti, true},
 			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
 			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
@@ -360,7 +360,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
 			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
 			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
@@ -371,7 +371,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
-		scripts: []ScriptDef{
+		scripts: []Script{
 			{"config.ini", globals.TmplNdbConfig, false},
 			{globals.ScriptInitializeNodes, globals.TmplNdbStartCluster, true},
 			{globals.ScriptCheckNodes, globals.TmplNdbMgm, true},
@@ -381,8 +381,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 	}
 
 	for _, sb := range []ScriptBatch{sbMultiple, sbRepl, sbNdb} {
-		err := writeScripts(sb)
-		if err != nil {
+		if err := sb.WriteScripts("ndb_replication.go:384"); err != nil {
 			fmt.Printf("%s\n", err)
 			return err
 		}

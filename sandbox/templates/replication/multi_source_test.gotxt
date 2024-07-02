@@ -29,9 +29,9 @@ total_tables=0
 for M in $MASTERS
 do
 	echo "# master $M"
-    $SBDIR/{{.NodeLabel}}$M/use test -e "drop table if exists t$M"
-    $SBDIR/{{.NodeLabel}}$M/use test -e "create table t$M(id int not null primary key, sid int) {{.EngineClause}}"
-    $SBDIR/{{.NodeLabel}}$M/use test -e "insert into t$M values ($M, @@server_id)"
+    $SBDIR/{{.NodeLabel}}$M/use test -e "DROP TABLE IF EXISTS t$M"
+    $SBDIR/{{.NodeLabel}}$M/use test -e "CREATE TABLE t$M(id INT NOT NULL PRIMARY KEY, sid INT) {{.EngineClause}}"
+    $SBDIR/{{.NodeLabel}}$M/use test -e "INSERT INTO t$M VALUES ($M, @@server_id)"
 	# $SBDIR/{{.NodeLabel}}$M/use test -e "show tables from test"
 	total_tables=$((total_tables+1))
 done
@@ -43,9 +43,9 @@ do
 
 	if [[ $MYSQL_VERSION_MAJOR -ge 5 ]]
     then
-        found_tables=$($SBDIR/{{.NodeLabel}}$S/use test -BN -e "select count(*) from information_schema.tables where table_schema='test'")
+        found_tables=$($SBDIR/{{.NodeLabel}}$S/use test -BN -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='test'")
     else
-        found_tables=$($SBDIR/{{.NodeLabel}}$S/use test -BN -e "show tables from test" | wc -l | tr -d '\t ')
+        found_tables=$($SBDIR/{{.NodeLabel}}$S/use test -BN -e "SHOW TABLES FROM test" | wc -l | tr -d '\t ')
     fi
 	ok_equal $found_tables $total_tables "Slaves received tables from all masters"
 done
