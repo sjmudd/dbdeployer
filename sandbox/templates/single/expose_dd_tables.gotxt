@@ -1,4 +1,3 @@
-
 SET PERSIST DEBUG='+d,skip_dd_table_access_check';
 SET @col_type=(SELECT c.type FROM mysql.columns c INNER JOIN mysql.tables t WHERE t.id=table_id AND t.name='tables' AND c.name='hidden');
 SET @visible=(IF(@col_type = 'MYSQL_TYPE_ENUM', 'Visible', '0'));
