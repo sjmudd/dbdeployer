@@ -25,7 +25,7 @@ import (
 	"os"
 )
 
-//go:embed tarball_list.json
+//go:embed tarball-list.json
 var _tarballList []byte
 
 var DefaultTarballRegistry TarballCollection

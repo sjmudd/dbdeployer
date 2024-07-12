@@ -1252,6 +1252,21 @@
     "date_added": "2024-05-24 16:29"
    },
    {
+    "name": "mysql-8.0.38-macos14-arm64.tar.gz",
+    "checksum": "MD5:d2bc4820753b7d5a52269485a70a3ae5",
+    "OS": "Darwin",
+    "arch": "arm64",
+    "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.38-macos14-arm64.tar.gz",
+    "flavor": "mysql",
+    "minimal": false,
+    "size": 168903404,
+    "short_version": "8.0",
+    "version": "8.0.38",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-07-03 11:52"
+   },
+   {
     "name": "mysql-8.2.0-macos13-arm64.tar.gz",
     "checksum": "MD5:c6d8b46d8921d030b28dd0d418862775",
     "OS": "Darwin",
@@ -1322,6 +1337,21 @@
     "updated_by": "addUrltoCollection",
     "notes": "added with version 1.73.0.1.sjm",
     "date_added": "2024-05-25 11:08"
+   },
+   {
+    "name": "mysql-8.4.1-macos14-arm64.tar.gz",
+    "checksum": "MD5:26a6ac98472992f8b7a75861d70da913",
+    "OS": "Darwin",
+    "arch": "arm64",
+    "url": "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.1-macos14-arm64.tar.gz",
+    "flavor": "mysql",
+    "minimal": false,
+    "size": 164175376,
+    "short_version": "8.4",
+    "version": "8.4.1",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-07-12 21:36"
    },
    {
     "name": "mysql-8.4.1-linux-glibc2.28-aarch64.tar.xz",
@@ -1957,6 +1987,21 @@
     "updated_by": "addUrltoCollection",
     "notes": "added with version 1.73.2",
     "date_added": "2024-05-26 10:13"
+   },
+   {
+    "name": "mysql-cluster-8.0.38-linux-glibc2.12-x86_64.tar.xz",
+    "checksum": "MD5:17b11c8f1c205b827874f307c6912ecd",
+    "OS": "linux",
+    "arch": "x86_64",
+    "url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.38-linux-glibc2.12-x86_64.tar.xz",
+    "flavor": "ndb",
+    "minimal": false,
+    "size": 703139580,
+    "short_version": "8.0",
+    "version": "8.0.38",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-07-12 21:26"
    },
    {
     "name": "mysql-cluster-8.4.0-macos14-arm64.tar.gz",
