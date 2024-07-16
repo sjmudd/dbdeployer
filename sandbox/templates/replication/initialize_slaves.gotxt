@@ -26,7 +26,7 @@ fi
 
 {{ range .Slaves }}
 echo "initializing {{.SlaveLabel}} {{.Node}}"
-echo '{{$.ChangeMasterCmd}} {{$.MASTER_HOST}}="{{.MasterIp}}", {{$.MASTER_PORT}}={{.MasterPort}}, {{$.MASTER_USER}}="{{.RplUser}}", {{$.MASTER_PASSWORD}}="{{.RplPassword}}" {{$.MASTER_AUTO_POSITION}} {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
+echo '{{$.ChangeMasterCmd}} {{$.MASTER_HOST}}="{{.MasterIp}}", {{$.MASTER_PORT}}={{.MasterPort}}, {{$.MASTER_USER}}="{{.RplUser}}", {{$.MASTER_PASSWORD}}="{{.RplPassword}}" {{.MasterAutoPosition}} {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
 $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e '{{$.StartSlaveCmd}}'
 print_error {{.NodeLabel}} $?
 {{end}}

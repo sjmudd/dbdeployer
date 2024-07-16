@@ -229,6 +229,9 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 		"Slaves":             []common.StringMap{},
 	}
 
+	// Add the MySQL 8.4 specific override settings
+	data = data.Add(convert.MySQLNamesByVersion(sandboxDef.Version))
+
 	logger.Printf("Defining replication data: %v\n", stringMapToJson(data))
 	installationMessage := "Installing and starting %s\n"
 	if sandboxDef.SkipStart {
@@ -396,11 +399,10 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 			dataSlave,
 			scripts,
 		}
-		if err := sb.WriteScripts("replication.go:414"); err != nil {
+		if err := sb.WriteScripts("replication.go:402"); err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
-
 			scripts = []Script{
 				{fmt.Sprintf("%sa%d", slaveAbbr, i), globals.TmplSlaveAdmin, true},
 				{fmt.Sprintf("na%d", i+1), globals.TmplSlaveAdmin, true},
@@ -414,7 +416,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 				dataSlave,
 				scripts,
 			}
-			if err := sb.WriteScripts("replication.go:432"); err != nil {
+			if err := sb.WriteScripts("replication.go:419"); err != nil {
 				return err
 			}
 		}
@@ -458,7 +460,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 		{execAllMasters, globals.TmplExecAllMasters, true},
 		{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
 		{"n1", globals.TmplMaster, true},
-		{"test_replication", globals.TmplTestReplication, true},
+		{globals.ScriptTestReplication, globals.TmplTestReplication, true},
 		{globals.ScriptReplicateFrom, globals.TmplReplReplicateFrom, true},
 		{globals.ScriptSysbench, globals.TmplReplSysbench, true},
 		{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
@@ -476,7 +478,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 
 	logger.Printf("Create replication scripts\n")
 	sb := ScriptBatch{tc: ReplicationTemplates, logger: logger, sandboxDir: sandboxDef.SandboxDir, data: data, scripts: scripts}
-	if err := sb.WriteScripts("replication.go:494"); err != nil {
+	if err := sb.WriteScripts("replication.go:481"); err != nil {
 		return err
 	}
 	logger.Printf("Run concurrent sandbox scripts \n")
