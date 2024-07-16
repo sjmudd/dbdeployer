@@ -27,11 +27,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/concurrent"
-	"github.com/datacharmer/dbdeployer/convert"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/concurrent"
+	"github.com/sjmudd/dbdeployer/convert"
+	"github.com/sjmudd/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 type SandboxDef struct {

@@ -24,7 +24,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 var (

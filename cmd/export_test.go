@@ -18,11 +18,11 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/globals"
 	"testing"
 
-	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/sjmudd/dbdeployer/compare"
 )
 
 func TestExport(t *testing.T) {

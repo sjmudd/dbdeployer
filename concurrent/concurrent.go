@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/defaults"
 )
 
 type CommonChan chan *exec.Cmd

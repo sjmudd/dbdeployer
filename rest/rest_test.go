@@ -18,7 +18,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/sjmudd/dbdeployer/compare"
 )
 
 func TestDownloadFile(t *testing.T) {

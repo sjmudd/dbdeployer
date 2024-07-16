@@ -1,4 +1,4 @@
-module github.com/datacharmer/dbdeployer
+module github.com/sjmudd/dbdeployer
 
 go 1.22.3
 

@@ -26,7 +26,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 // StringMap defines the map of variable types, for brevity

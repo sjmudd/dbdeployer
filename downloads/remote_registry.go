@@ -28,9 +28,9 @@ import (
 	"strings"
 
 	"github.com/araddon/dateparse"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/globals"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

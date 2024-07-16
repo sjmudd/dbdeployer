@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/datacharmer/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/common"
 )
 
 // intPart returns the numeric integer part of a version string to be used in comparisons

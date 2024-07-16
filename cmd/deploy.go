@@ -21,9 +21,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/globals"
 	"github.com/spf13/cobra"
 )
 

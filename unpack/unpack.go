@@ -65,8 +65,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/xi2/xz"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 const (

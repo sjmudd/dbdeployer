@@ -16,8 +16,8 @@
 package abbreviations
 
 import (
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/compare"
 	"os"
 	"testing"
 )

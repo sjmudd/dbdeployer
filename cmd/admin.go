@@ -17,14 +17,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/defaults"
 	"os"
 	"path"
 	"sort"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/sandbox"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

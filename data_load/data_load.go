@@ -25,11 +25,11 @@ import (
 
 	"github.com/dustin/go-humanize"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/datacharmer/dbdeployer/rest"
-	"github.com/datacharmer/dbdeployer/unpack"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/rest"
+	"github.com/sjmudd/dbdeployer/unpack"
 )
 
 type DataDefinition struct {
@@ -76,7 +76,7 @@ var defaultArchives = map[string]DataDefinition{
 	},
 	"employees": {
 		Description:       "employee data (large dataset, includes data and test/verification suite)",
-		Origin:            "https://github.com/datacharmer/test_db/releases/download/v1.0.7/test_db-1.0.7.tar.gz",
+		Origin:            "https://github.com/sjmudd/test_db/releases/download/v1.0.7/test_db-1.0.7.tar.gz",
 		FileName:          "test_db-1.0.7.tar.gz",
 		InternalDirectory: "test_db",
 		ChangeDirectory:   true,

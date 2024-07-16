@@ -26,9 +26,9 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 type ReleaseUser struct {
@@ -64,8 +64,8 @@ type DbdeployerRelease struct {
 
 type RemoteFilesMap = map[string][]string
 
-// var RemoteRepo string = "https://github.com/datacharmer/mysql-docker-minimal/blob/master/dbdata"
-// var RemoteRepoRaw string = "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata"
+// var RemoteRepo string = "https://github.com/sjmudd/mysql-docker-minimal/blob/master/dbdata"
+// var RemoteRepoRaw string = "https://raw.githubusercontent.com/sjmudd/mysql-docker-minimal/master/dbdata"
 var FileUrlTemplate string = "{{.RemoteRepo}}/{{.FileName}}"
 var IndexUrlTemplate string = "{{.RemoteRepo}}/{{.FileName}}"
 
@@ -221,7 +221,7 @@ func getReleaseText(tag string) ([]byte, error) {
 	if tag != "" && tag != "latest" {
 		tag = "tags/" + tag
 	}
-	releaseUrl := fmt.Sprintf("https://api.github.com/repos/datacharmer/dbdeployer/releases%s%s", endUrl, tag)
+	releaseUrl := fmt.Sprintf("https://api.github.com/repos/sjmudd/dbdeployer/releases%s%s", endUrl, tag)
 	if os.Getenv("SBDEBUG") != "" {
 		fmt.Printf("%s\n", releaseUrl)
 	}

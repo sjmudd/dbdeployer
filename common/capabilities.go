@@ -14,7 +14,7 @@
 // limitations under the License.
 package common
 
-import "github.com/datacharmer/dbdeployer/globals"
+import "github.com/sjmudd/dbdeployer/globals"
 
 // Capability defines a feature availability
 type Capability struct {

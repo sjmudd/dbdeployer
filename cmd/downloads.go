@@ -28,12 +28,12 @@ import (
 	"time"
 
 	"github.com/alexeyco/simpletable"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/downloads"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/datacharmer/dbdeployer/ops"
-	"github.com/datacharmer/dbdeployer/rest"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/downloads"
+	"github.com/sjmudd/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/ops"
+	"github.com/sjmudd/dbdeployer/rest"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )

@@ -18,8 +18,8 @@ package sandbox
 import (
 	"fmt"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/defaults"
 )
 
 // ScriptBatch holds scripts to be used in a sandbox directory

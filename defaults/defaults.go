@@ -21,8 +21,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 type DbdeployerDefaults struct {
@@ -128,10 +128,10 @@ var (
 		FanInPrefix:                   "fan_in_msb_",
 		AllMastersPrefix:              "all_masters_msb_",
 		ReservedPorts:                 globals.ReservedPorts,
-		RemoteRepository:              "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
+		RemoteRepository:              "https://raw.githubusercontent.com/sjmudd/mysql-docker-minimal/master/dbdata",
 		RemoteIndexFile:               "available.json",
-		RemoteCompletionUrl:           "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer_completion.sh",
-		RemoteTarballUrl:              "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/downloads/tarball_list.json",
+		RemoteCompletionUrl:           "https://raw.githubusercontent.com/sjmudd/dbdeployer/master/docs/dbdeployer_completion.sh",
+		RemoteTarballUrl:              "https://raw.githubusercontent.com/sjmudd/dbdeployer/master/downloads/tarball_list.json",
 		NdbPrefix:                     "ndb_msb_",
 		PxcPrefix:                     "pxc_msb_",
 		DefaultSandboxExecutable:      "default",

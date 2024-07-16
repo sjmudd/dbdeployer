@@ -16,10 +16,10 @@
 package cmd
 
 import (
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/datacharmer/dbdeployer/ops"
+	"github.com/sjmudd/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/ops"
 
-	"github.com/datacharmer/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/common"
 	"github.com/spf13/cobra"
 )
 

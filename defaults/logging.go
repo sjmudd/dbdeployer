@@ -23,8 +23,8 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 type Logger struct {

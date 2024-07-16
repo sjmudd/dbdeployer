@@ -18,11 +18,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/datacharmer/dbdeployer/ops"
+	"github.com/sjmudd/dbdeployer/ops"
 	"github.com/spf13/cobra"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 func unpackTarball(cmd *cobra.Command, args []string) {

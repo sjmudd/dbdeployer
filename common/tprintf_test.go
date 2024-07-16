@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/datacharmer/dbdeployer/compare"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/compare"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 func TestSafeTemplateFill(t *testing.T) {

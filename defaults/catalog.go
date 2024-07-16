@@ -24,8 +24,8 @@ import (
 
 	"github.com/nightlyone/lockfile"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/common"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 type SandboxItem struct {

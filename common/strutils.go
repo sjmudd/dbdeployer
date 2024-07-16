@@ -23,7 +23,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/sjmudd/dbdeployer/globals"
 )
 
 type CleanupFunc func(target string)
