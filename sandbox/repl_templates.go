@@ -20,8 +20,6 @@ package sandbox
 
 import (
 	_ "embed"
-
-	"github.com/sjmudd/dbdeployer/globals"
 )
 
 // Templates for replication
@@ -130,172 +128,172 @@ var (
 	sysbenchReadyReplTemplate string
 
 	ReplicationTemplates = TemplateCollection{
-		globals.TmplInitializeSlaves: TemplateDesc{
+		TmplInitializeSlaves: TemplateDesc{
 			Description: "Initialize slaves after deployment",
 			Notes:       "Can also be run after calling './clear_all'",
 			Contents:    initializeSlavesTemplate,
 		},
-		globals.TmplSemiSyncStart: TemplateDesc{
+		TmplSemiSyncStart: TemplateDesc{
 			Description: "Starts semi synch replication ",
 			Notes:       "",
 			Contents:    semiSyncStartTemplate,
 		},
-		globals.TmplStartAll: TemplateDesc{
+		TmplStartAll: TemplateDesc{
 			Description: "Starts nodes in replication order (with optional mysqld arguments)",
 			Notes:       "",
 			Contents:    startAllTemplate,
 		},
-		globals.TmplRestartAll: TemplateDesc{
+		TmplRestartAll: TemplateDesc{
 			Description: "stops all nodes and restarts them (with optional mysqld arguments)",
 			Notes:       "",
 			Contents:    restartAllTemplate,
 		},
-		globals.TmplUseAll: TemplateDesc{
+		TmplUseAll: TemplateDesc{
 			Description: "Execute a query for all nodes",
 			Notes:       "",
 			Contents:    useAllTemplate,
 		},
-		globals.TmplExecAll: TemplateDesc{
+		TmplExecAll: TemplateDesc{
 			Description: "Execute a command in all nodes",
 			Notes:       "",
 			Contents:    execAllTemplate,
 		},
-		globals.TmplMetadataAll: TemplateDesc{
+		TmplMetadataAll: TemplateDesc{
 			Description: "Execute a metadata query for all nodes",
 			Notes:       "",
 			Contents:    metadataAllTemplate,
 		},
-		globals.TmplUseAllAdmin: TemplateDesc{
+		TmplUseAllAdmin: TemplateDesc{
 			Description: "Execute a query (as admin user) for all nodes",
 			Notes:       "",
 			Contents:    useAllAdminTemplate,
 		},
-		globals.TmplUseAllSlaves: TemplateDesc{
+		TmplUseAllSlaves: TemplateDesc{
 			Description: "Execute a query for all slaves",
 			Notes:       "master-slave topology",
 			Contents:    useAllSlavesTemplate,
 		},
-		globals.TmplUseAllMasters: TemplateDesc{
+		TmplUseAllMasters: TemplateDesc{
 			Description: "Execute a query for all masters",
 			Notes:       "master-slave topology",
 			Contents:    useAllMastersTemplate,
 		},
-		globals.TmplExecAllSlaves: TemplateDesc{
+		TmplExecAllSlaves: TemplateDesc{
 			Description: "Execute a command in all slave nodes",
 			Notes:       "master-slave topology",
 			Contents:    execAllSlavesTemplate,
 		},
-		globals.TmplExecAllMasters: TemplateDesc{
+		TmplExecAllMasters: TemplateDesc{
 			Description: "Execute a command in all master nodes",
 			Notes:       "master-slave topology",
 			Contents:    execAllMastersTemplate,
 		},
-		globals.TmplStopAll: TemplateDesc{
+		TmplStopAll: TemplateDesc{
 			Description: "Stops all nodes in reverse replication order",
 			Notes:       "",
 			Contents:    stopAllTemplate,
 		},
-		globals.TmplSendKillAll: TemplateDesc{
+		TmplSendKillAll: TemplateDesc{
 			Description: "Send kill signal to all nodes",
 			Notes:       "",
 			Contents:    sendKillAllTemplate,
 		},
-		globals.TmplClearAll: TemplateDesc{
+		TmplClearAll: TemplateDesc{
 			Description: "Remove data from all nodes",
 			Notes:       "",
 			Contents:    clearAllTemplate,
 		},
-		globals.TmplStatusAll: TemplateDesc{
+		TmplStatusAll: TemplateDesc{
 			Description: "Show status of all nodes",
 			Notes:       "",
 			Contents:    statusAllTemplate,
 		},
-		globals.TmplTestSbAll: TemplateDesc{
+		TmplTestSbAll: TemplateDesc{
 			Description: "Run sb test on all nodes",
 			Notes:       "",
 			Contents:    testSbAllTemplate,
 		},
-		globals.TmplTestReplication: TemplateDesc{
+		TmplTestReplication: TemplateDesc{
 			Description: "Tests replication flow",
 			Notes:       "",
 			Contents:    testReplicationTemplate,
 		},
-		globals.TmplCheckSlaves: TemplateDesc{
+		TmplCheckSlaves: TemplateDesc{
 			Description: "Checks replication status in master and slaves",
 			Notes:       "",
 			Contents:    checkSlavesTemplate,
 		},
-		globals.TmplMaster: TemplateDesc{
+		TmplMaster: TemplateDesc{
 			Description: "Runs the MySQL client for the master",
 			Notes:       "",
 			Contents:    masterTemplate,
 		},
-		globals.TmplMasterAdmin: TemplateDesc{
+		TmplMasterAdmin: TemplateDesc{
 			Description: "Runs the MySQL client for the master as admin user",
 			Notes:       "",
 			Contents:    masterAdminTemplate,
 		},
-		globals.TmplSlave: TemplateDesc{
+		TmplSlave: TemplateDesc{
 			Description: "Runs the MySQL client for a slave",
 			Notes:       "",
 			Contents:    slaveTemplate,
 		},
-		globals.TmplSlaveAdmin: TemplateDesc{
+		TmplSlaveAdmin: TemplateDesc{
 			Description: "Runs the MySQL client for a slave as admin_user",
 			Notes:       "",
 			Contents:    slaveAdminTemplate,
 		},
-		globals.TmplMultiSource: TemplateDesc{
+		TmplMultiSource: TemplateDesc{
 			Description: "Initializes nodes for multi-source replication",
 			Notes:       "fan-in and all-masters",
 			Contents:    multiSourceTemplate,
 		},
-		globals.TmplMultiSourceUseSlaves: TemplateDesc{
+		TmplMultiSourceUseSlaves: TemplateDesc{
 			Description: "Runs a query for all slave nodes",
 			Notes:       "group replication and multi-source topologies",
 			Contents:    multiSourceUseSlavesTemplate,
 		},
-		globals.TmplMultiSourceUseMasters: TemplateDesc{
+		TmplMultiSourceUseMasters: TemplateDesc{
 			Description: "Runs a query for all master nodes",
 			Notes:       "group replication and multi-source topologies",
 			Contents:    multiSourceUseMastersTemplate,
 		},
-		globals.TmplMultiSourceExecSlaves: TemplateDesc{
+		TmplMultiSourceExecSlaves: TemplateDesc{
 			Description: "Runs a command in each slave node",
 			Notes:       "group replication and multi-source topologies",
 			Contents:    multiSourceExecSlavesTemplate,
 		},
-		globals.TmplMultiSourceExecMasters: TemplateDesc{
+		TmplMultiSourceExecMasters: TemplateDesc{
 			Description: "Runs a command in each slave node",
 			Notes:       "group replication and multi-source topologies",
 			Contents:    multiSourceExecMastersTemplate,
 		},
-		globals.TmplWipeAndRestartAll: TemplateDesc{
+		TmplWipeAndRestartAll: TemplateDesc{
 			Description: "clears the databases and restarts them all",
 			Notes:       "group replication and multi-source topologies",
 			Contents:    wipeAndRestartAllTemplate,
 		},
-		globals.TmplMultiSourceTest: TemplateDesc{
+		TmplMultiSourceTest: TemplateDesc{
 			Description: "Test replication flow for multi-source replication",
 			Notes:       "fan-in and all-masters",
 			Contents:    multiSourceTestTemplate,
 		},
-		globals.TmplCheckMultiSource: TemplateDesc{
+		TmplCheckMultiSource: TemplateDesc{
 			Description: "checks replication status for multi-source replication",
 			Notes:       "fan-in and all-masters",
 			Contents:    checkMultiSourceTemplate,
 		},
-		globals.TmplReplReplicateFrom: TemplateDesc{
+		TmplReplReplicateFrom: TemplateDesc{
 			Description: "use replicate_from script from the master",
 			Notes:       "",
 			Contents:    replicateFromReplTemplate,
 		},
-		globals.TmplReplSysbench: TemplateDesc{
+		TmplReplSysbench: TemplateDesc{
 			Description: "use sysbench script from the master",
 			Notes:       "",
 			Contents:    sysbenchReplTemplate,
 		},
-		globals.TmplReplSysbenchReady: TemplateDesc{
+		TmplReplSysbenchReady: TemplateDesc{
 			Description: "use sysbench_ready script from the master",
 			Notes:       "",
 			Contents:    sysbenchReadyReplTemplate,

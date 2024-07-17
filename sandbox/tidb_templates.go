@@ -23,8 +23,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-
-	"github.com/sjmudd/dbdeployer/globals"
 )
 
 var (
@@ -54,37 +52,37 @@ const tidbPrefix = "tidb_"
 // Every template in this collection will replace the corresponding one in SingleTemplates
 // when the flavor is "tidb"
 var TidbTemplates = TemplateCollection{
-	globals.TmplTidbInitDb: TemplateDesc{
+	TmplTidbInitDb: TemplateDesc{
 		Description: "Initialization template for the TiDB server",
 		Notes:       "This should normally run only once",
 		Contents:    tidbInitTemplate,
 	},
-	globals.TmplTidbMyCnf: TemplateDesc{
+	TmplTidbMyCnf: TemplateDesc{
 		Description: "Default options file for a TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbMyCnfTemplate,
 	},
-	globals.TmplTidbStart: TemplateDesc{
+	TmplTidbStart: TemplateDesc{
 		Description: "Stops a database in a single TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbStartTemplate,
 	},
-	globals.TmplTidbStop: TemplateDesc{
+	TmplTidbStop: TemplateDesc{
 		Description: "Stops a database in a single TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbStopTemplate,
 	},
-	globals.TmplTidbSendKill: TemplateDesc{
+	TmplTidbSendKill: TemplateDesc{
 		Description: "Sends a kill signal to the TiDB database",
 		Notes:       "",
 		Contents:    tidbSendKillTemplate,
 	},
-	globals.TmplTidbGrants5x: TemplateDesc{
+	TmplTidbGrants5x: TemplateDesc{
 		Description: "Grants for TiDB sandboxes",
 		Notes:       "",
 		Contents:    tidbGrantsTemplate,
 	},
-	globals.TmplTidbAfterStart: TemplateDesc{
+	TmplTidbAfterStart: TemplateDesc{
 		Description: "commands to run after the database started",
 		Notes:       "This script does nothing. You can change it and reuse through --use-template",
 		Contents:    tidbAfterStartTemplate,

@@ -20,8 +20,6 @@ package sandbox
 
 import (
 	_ "embed"
-
-	"github.com/sjmudd/dbdeployer/globals"
 )
 
 // Templates for group replication
@@ -38,17 +36,17 @@ var (
 	pxcReplicationTemplate string
 
 	PxcTemplates = TemplateCollection{
-		globals.TmplPxcCheckNodes: TemplateDesc{
+		TmplPxcCheckNodes: TemplateDesc{
 			Description: "Checks the status of PXC replication",
 			Notes:       "",
 			Contents:    checkPxcNodesTemplate,
 		},
-		globals.TmplPxcReplication: TemplateDesc{
+		TmplPxcReplication: TemplateDesc{
 			Description: "Replication options for PXC",
 			Notes:       "",
 			Contents:    pxcReplicationTemplate,
 		},
-		globals.TmplPxcStart: TemplateDesc{
+		TmplPxcStart: TemplateDesc{
 			Description: "start all nodes in a PXC",
 			Notes:       "",
 			Contents:    pxcStartTemplate,

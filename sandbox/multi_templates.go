@@ -20,8 +20,6 @@ package sandbox
 
 import (
 	_ "embed"
-
-	"github.com/sjmudd/dbdeployer/globals"
 )
 
 // Templates for multiple sandboxes
@@ -76,82 +74,82 @@ var (
 	sysbenchReadyMultiTemplate string
 
 	MultipleTemplates = TemplateCollection{
-		globals.TmplStartMulti: TemplateDesc{
+		TmplStartMulti: TemplateDesc{
 			Description: "Starts all nodes (with optional mysqld arguments)",
 			Notes:       "",
 			Contents:    startMultiTemplate,
 		},
-		globals.TmplRestartMulti: TemplateDesc{
+		TmplRestartMulti: TemplateDesc{
 			Description: "Restarts all nodes (with optional mysqld arguments)",
 			Notes:       "",
 			Contents:    restartMultiTemplate,
 		},
-		globals.TmplUseMulti: TemplateDesc{
+		TmplUseMulti: TemplateDesc{
 			Description: "Runs the same SQL query in all nodes",
 			Notes:       "",
 			Contents:    useMultiTemplate,
 		},
-		globals.TmplExecMulti: TemplateDesc{
+		TmplExecMulti: TemplateDesc{
 			Description: "Runs the same command in all nodes",
 			Notes:       "",
 			Contents:    execMultiTemplate,
 		},
-		globals.TmplMetadataMulti: TemplateDesc{
+		TmplMetadataMulti: TemplateDesc{
 			Description: "Runs a metadata query in all nodes",
 			Notes:       "",
 			Contents:    metadataMultiTemplate,
 		},
-		globals.TmplUseMultiAdmin: TemplateDesc{
+		TmplUseMultiAdmin: TemplateDesc{
 			Description: "Runs the same SQL query (as admin user) in all nodes",
 			Notes:       "",
 			Contents:    useMultiAdminTemplate,
 		},
-		globals.TmplStopMulti: TemplateDesc{
+		TmplStopMulti: TemplateDesc{
 			Description: "Stops all nodes",
 			Notes:       "",
 			Contents:    stopMultiTemplate,
 		},
-		globals.TmplSendKillMulti: TemplateDesc{
+		TmplSendKillMulti: TemplateDesc{
 			Description: "Sends kill signal to all nodes",
 			Notes:       "",
 			Contents:    sendKillMultiTemplate,
 		},
-		globals.TmplClearMulti: TemplateDesc{
+		TmplClearMulti: TemplateDesc{
 			Description: "Removes data from all nodes",
 			Notes:       "",
 			Contents:    clearMultiTemplate,
 		},
-		globals.TmplStatusMulti: TemplateDesc{
+		TmplStatusMulti: TemplateDesc{
 			Description: "Shows status for all nodes",
 			Notes:       "",
 			Contents:    statusMultiTemplate,
 		},
-		globals.TmplTestSbMulti: TemplateDesc{
+		TmplTestSbMulti: TemplateDesc{
 			Description: "Run sb test on all nodes",
 			Notes:       "",
 			Contents:    testSbMultiTemplate,
 		},
-		globals.TmplNode: TemplateDesc{
+		TmplNode: TemplateDesc{
 			Description: "Runs the MySQL client for a given node",
 			Notes:       "",
 			Contents:    nodeTemplate,
 		},
-		globals.TmplNodeAdmin: TemplateDesc{
+		TmplNodeAdmin: TemplateDesc{
 			Description: "Runs the MySQL client for a given node as admin user",
 			Notes:       "",
 			Contents:    nodeAdminTemplate,
 		},
-		globals.TmplReplicateFromMulti: TemplateDesc{
+		TmplReplicateFromMulti: TemplateDesc{
 			Description: "calls script replicate_from from node #1",
 			Notes:       "",
 			Contents:    replicateFromMultiTemplate,
 		},
-		globals.TmplSysbenchMulti: TemplateDesc{
+		TmplSysbenchMulti: TemplateDesc{
 			Description: "calls script sysbench from node #1",
 			Notes:       "",
 			Contents:    sysbenchMultiTemplate,
 		},
-		globals.TmplSysbenchReadyMulti: TemplateDesc{
+		TmplSysbenchReadyMulti: TemplateDesc{
 			Description: "calls script sysbench_ready from node #1",
 			Notes:       "",
 			Contents:    sysbenchReadyMultiTemplate,

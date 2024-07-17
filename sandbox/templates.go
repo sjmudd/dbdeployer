@@ -183,244 +183,244 @@ var (
 	metadataTemplate string
 
 	SingleTemplates = TemplateCollection{
-		globals.TmplCopyright: TemplateDesc{
+		TmplCopyright: TemplateDesc{
 			Description: "Copyright for every sandbox script",
 			Notes:       "",
 			Contents:    globals.ShellScriptCopyright,
 		},
-		globals.TmplReplicationOptions: TemplateDesc{
+		TmplReplicationOptions: TemplateDesc{
 			Description: "Replication options for my.cnf",
 			Notes:       "",
 			Contents:    replicationOptions,
 		},
-		globals.TmplSemisyncMasterOptions: TemplateDesc{
+		TmplSemisyncMasterOptions: TemplateDesc{
 			Description: "master semi-synch options for my.cnf",
 			Notes:       "",
 			Contents:    semisyncMasterOptions,
 		},
-		globals.TmplSemisyncSlaveOptions: TemplateDesc{
+		TmplSemisyncSlaveOptions: TemplateDesc{
 			Description: "slave semi-synch options for my.cnf",
 			Notes:       "",
 			Contents:    semisyncSlaveOptions,
 		},
-		globals.TmplGtidOptions56: TemplateDesc{
+		TmplGtidOptions56: TemplateDesc{
 			Description: "GTID options for my.cnf 5.6.x",
 			Notes:       "",
 			Contents:    gtidOptions56,
 		},
-		globals.TmplGtidOptions57: TemplateDesc{
+		TmplGtidOptions57: TemplateDesc{
 			Description: "GTID options for my.cnf 5.7.x and 8.0",
 			Notes:       "",
 			Contents:    gtidOptions57,
 		},
-		globals.TmplReplCrashSafeOptions: TemplateDesc{
+		TmplReplCrashSafeOptions: TemplateDesc{
 			Description: "Replication crash safe options",
 			Notes:       "",
 			Contents:    replCrashSafeOptions,
 		},
-		globals.TmplExposeDdTables: TemplateDesc{
+		TmplExposeDdTables: TemplateDesc{
 			Description: "Commands needed to enable data dictionary table usage",
 			Notes:       "",
 			Contents:    exposeDdTables,
 		},
-		globals.TmplInitDb: TemplateDesc{
+		TmplInitDb: TemplateDesc{
 			Description: "Initialization template for the database",
 			Notes:       "This should normally run only once",
 			Contents:    initDbTemplate,
 		},
-		globals.TmplStart: TemplateDesc{
+		TmplStart: TemplateDesc{
 			Description: "starts the database in a single sandbox (with optional mysqld arguments)",
 			Notes:       "",
 			Contents:    startTemplate,
 		},
-		globals.TmplUse: TemplateDesc{
+		TmplUse: TemplateDesc{
 			Description: "Invokes the MySQL client with the appropriate options",
 			Notes:       "",
 			Contents:    useTemplate,
 		},
-		globals.TmplUseAdmin: TemplateDesc{
+		TmplUseAdmin: TemplateDesc{
 			Description: "Invokes the MySQL client as admin",
 			Notes:       "For MySQL 8.0.14+",
 			Contents:    useAdminTemplate,
 		},
-		globals.TmplSysbench: TemplateDesc{
+		TmplSysbench: TemplateDesc{
 			Description: "Invokes the sysbench tool with custom defined options",
 			Notes:       "Requires sysbench to be installed",
 			Contents:    sysbenchTemplate,
 		},
-		globals.TmplSysbenchReady: TemplateDesc{
+		TmplSysbenchReady: TemplateDesc{
 			Description: "Invokes the sysbench tool with predefined actions",
 			Notes:       "Requires sysbench to be installed",
 			Contents:    sysbenchReadyTemplate,
 		},
-		globals.TmplMysqlsh: TemplateDesc{
+		TmplMysqlsh: TemplateDesc{
 			Description: "Invokes the MySQL shell with an appropriate URI",
 			Notes:       "",
 			Contents:    mysqlshTemplate,
 		},
-		globals.TmplStop: TemplateDesc{
+		TmplStop: TemplateDesc{
 			Description: "Stops a database in a single sandbox",
 			Notes:       "",
 			Contents:    stopTemplate,
 		},
-		globals.TmplClear: TemplateDesc{
+		TmplClear: TemplateDesc{
 			Description: "Remove all data from a single sandbox",
 			Notes:       "",
 			Contents:    clearTemplate,
 		},
-		globals.TmplMyCnf: TemplateDesc{
+		TmplMyCnf: TemplateDesc{
 			Description: "Default options file for a sandbox",
 			Notes:       "",
 			Contents:    myCnfTemplate,
 		},
-		globals.TmplStatus: TemplateDesc{
+		TmplStatus: TemplateDesc{
 			Description: "Shows the status of a single sandbox",
 			Notes:       "",
 			Contents:    statusTemplate,
 		},
-		globals.TmplRestart: TemplateDesc{
+		TmplRestart: TemplateDesc{
 			Description: "Restarts the database (with optional mysqld arguments)",
 			Notes:       "",
 			Contents:    restartTemplate,
 		},
-		globals.TmplSendKill: TemplateDesc{
+		TmplSendKill: TemplateDesc{
 			Description: "Sends a kill signal to the database",
 			Notes:       "",
 			Contents:    sendKillTemplate,
 		},
-		globals.TmplLoadGrants: TemplateDesc{
+		TmplLoadGrants: TemplateDesc{
 			Description: "Loads the grants defined for the sandbox",
 			Notes:       "",
 			Contents:    loadGrantsTemplate,
 		},
-		globals.TmplGrants5x: TemplateDesc{
+		TmplGrants5x: TemplateDesc{
 			Description: "Grants for sandboxes up to 5.6",
 			Notes:       "",
 			Contents:    grantsTemplate5x,
 		},
-		globals.TmplGrants57: TemplateDesc{
+		TmplGrants57: TemplateDesc{
 			Description: "Grants for sandboxes from 5.7+",
 			Notes:       "",
 			Contents:    grantsTemplate57,
 		},
-		globals.TmplGrants8x: TemplateDesc{
+		TmplGrants8x: TemplateDesc{
 			Description: "Grants for sandboxes from 8.0+",
 			Notes:       "",
 			Contents:    grantsTemplate8x,
 		},
-		globals.TmplTaskUserGrants: TemplateDesc{
+		TmplTaskUserGrants: TemplateDesc{
 			Description: "Grants for task user (8.0+)",
 			Notes:       "",
 			Contents:    grantsTaskUserTemplate,
 		},
-		globals.TmplMy: TemplateDesc{
+		TmplMy: TemplateDesc{
 			Description: "Prefix script to run every my* command line tool",
 			Notes:       "",
 			Contents:    myTemplate,
 		},
-		globals.TmplAddOption: TemplateDesc{
+		TmplAddOption: TemplateDesc{
 			Description: "Adds options to the my.sandbox.cnf file and restarts",
 			Notes:       "",
 			Contents:    addOptionTemplate,
 		},
-		globals.TmplShowLog: TemplateDesc{
+		TmplShowLog: TemplateDesc{
 			Description: "Shows error log or custom log",
 			Notes:       "",
 			Contents:    showLogTemplate,
 		},
-		globals.TmplShowBinlog: TemplateDesc{
+		TmplShowBinlog: TemplateDesc{
 			Description: "Shows a binlog for a single sandbox",
 			Notes:       "",
 			Contents:    showBinlogTemplate,
 		},
-		globals.TmplShowRelaylog: TemplateDesc{
+		TmplShowRelaylog: TemplateDesc{
 			Description: "Show the relaylog for a single sandbox",
 			Notes:       "",
 			Contents:    showRelaylogTemplate,
 		},
-		globals.TmplTestSb: TemplateDesc{
+		TmplTestSb: TemplateDesc{
 			Description: "Tests basic sandbox functionality",
 			Notes:       "",
 			Contents:    testSbTemplate,
 		},
-		globals.TmplSbLocked: TemplateDesc{
+		TmplSbLocked: TemplateDesc{
 			Description: "locked sandbox script",
 			Notes:       "This script is replacing 'clear' when the sandbox is locked",
 			Contents:    sbLockedTemplate,
 		},
-		globals.TmplAfterStart: TemplateDesc{
+		TmplAfterStart: TemplateDesc{
 			Description: "commands to run after the database started",
 			Notes:       "This script does nothing. You can change it and reuse through --use-template",
 			Contents:    afterStartTemplate,
 		},
-		globals.TmplSbInclude: TemplateDesc{
+		TmplSbInclude: TemplateDesc{
 			Description: "Common variables and routines for sandboxes scripts",
 			Notes:       "",
 			Contents:    sbIncludeTemplate,
 		},
-		globals.TmplConnectionInfoSql: TemplateDesc{
+		TmplConnectionInfoSql: TemplateDesc{
 			Description: "connection info to replicate from this sandbox",
 			Notes:       "",
 			Contents:    connectionInfoSql,
 		},
-		globals.TmplConnectionInfoConf: TemplateDesc{
+		TmplConnectionInfoConf: TemplateDesc{
 			Description: "connection info to replicate from this sandbox (.conf)",
 			Notes:       "",
 			Contents:    ConnectionInfoConf,
 		},
-		globals.TmplConnectionInfoSuperConf: TemplateDesc{
+		TmplConnectionInfoSuperConf: TemplateDesc{
 			Description: "connection info use this sandbox as super user (.conf)",
 			Notes:       "",
 			Contents:    ConnectionInfoSuperConf,
 		},
-		globals.TmplConnectionInfoJson: TemplateDesc{
+		TmplConnectionInfoJson: TemplateDesc{
 			Description: "connection info to replicate from this sandbox (.json)",
 			Notes:       "",
 			Contents:    ConnectionInfoJson,
 		},
-		globals.TmplConnectionInfoSuperJson: TemplateDesc{
+		TmplConnectionInfoSuperJson: TemplateDesc{
 			Description: "connection info to use this sandbox as super user (.json)",
 			Notes:       "",
 			Contents:    ConnectionInfoSuperJson,
 		},
-		globals.TmplReplicateFrom: TemplateDesc{
+		TmplReplicateFrom: TemplateDesc{
 			Description: "starts replication from another sandbox",
 			Notes:       "",
 			Contents:    replicateFromTemplate,
 		},
-		globals.TmplCloneConnectionSql: TemplateDesc{
+		TmplCloneConnectionSql: TemplateDesc{
 			Description: "connection info to clone from this sandbox",
 			Notes:       "",
 			Contents:    cloneConnectionSql,
 		},
-		globals.TmplCloneFrom: TemplateDesc{
+		TmplCloneFrom: TemplateDesc{
 			Description: "clone from another sandbox",
 			Notes:       "",
 			Contents:    cloneFromTemplate,
 		},
-		globals.TmplMetadata: TemplateDesc{
+		TmplMetadata: TemplateDesc{
 			Description: "shows data about the sandbox",
 			Notes:       "",
 			Contents:    metadataTemplate,
 		},
-		globals.TmplWipeAndRestart: TemplateDesc{
+		TmplWipeAndRestart: TemplateDesc{
 			Description: "wipe the database and re-create it",
 			Notes:       "",
 			Contents:    wipeAndRestartTemplate,
 		},
 	}
 	MockTemplates = TemplateCollection{
-		globals.TmplNoOpMock: TemplateDesc{
+		TmplNoOpMock: TemplateDesc{
 			Description: "mock script that does nothing",
 			Notes:       "Used for internal tests",
 			Contents:    noOpMockTemplate,
 		},
-		globals.TmplMysqldSafeMock: TemplateDesc{
+		TmplMysqldSafeMock: TemplateDesc{
 			Description: "mock script for mysqld_safe",
 			Notes:       "Used for internal tests",
 			Contents:    mysqldSafeMockTemplate,
 		},
-		globals.TmplTidbMock: TemplateDesc{
+		TmplTidbMock: TemplateDesc{
 			Description: "mock script for tidb-server",
 			Notes:       "Used for internal tests",
 			Contents:    tidbMockTemplate,

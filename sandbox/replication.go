@@ -21,13 +21,14 @@ import (
 	"path"
 	"time"
 
+	"github.com/dustin/go-humanize/english"
+	"github.com/pkg/errors"
+
 	"github.com/sjmudd/dbdeployer/common"
 	"github.com/sjmudd/dbdeployer/concurrent"
 	"github.com/sjmudd/dbdeployer/convert"
 	"github.com/sjmudd/dbdeployer/defaults"
 	"github.com/sjmudd/dbdeployer/globals"
-	"github.com/dustin/go-humanize/english"
-	"github.com/pkg/errors"
 )
 
 type Slave struct {
@@ -121,7 +122,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
 	}
 
-	sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents
+	sandboxDef.ReplOptions = SingleTemplates[TmplReplicationOptions].Contents
 	vList, err := common.VersionToList(sandboxDef.Version)
 	if err != nil {
 		return err
@@ -361,7 +362,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 			logger.Printf(installationMessage, slaveLabel, i)
 		}
 		if sandboxDef.SemiSyncOptions != "" {
-			sandboxDef.SemiSyncOptions = SingleTemplates[globals.TmplSemisyncSlaveOptions].Contents
+			sandboxDef.SemiSyncOptions = SingleTemplates[TmplSemisyncSlaveOptions].Contents
 		}
 		logger.Printf("Creating single sandbox for slave %d\n", i)
 		execListNode, err := CreateSingleSandbox(sandboxDef)
@@ -388,8 +389,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 		logger.Printf("Create slave script %d\n", i)
 
 		scripts := []Script{
-			{fmt.Sprintf("%s%d", slaveAbbr, i), globals.TmplSlave, true},
-			{fmt.Sprintf("n%d", i+1), globals.TmplSlave, true},
+			{fmt.Sprintf("%s%d", slaveAbbr, i), TmplSlave, true},
+			{fmt.Sprintf("n%d", i+1), TmplSlave, true},
 		}
 
 		sb := ScriptBatch{
@@ -404,8 +405,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 		}
 		if sandboxDef.EnableAdminAddress {
 			scripts = []Script{
-				{fmt.Sprintf("%sa%d", slaveAbbr, i), globals.TmplSlaveAdmin, true},
-				{fmt.Sprintf("na%d", i+1), globals.TmplSlaveAdmin, true},
+				{fmt.Sprintf("%sa%d", slaveAbbr, i), TmplSlaveAdmin, true},
+				{fmt.Sprintf("na%d", i+1), TmplSlaveAdmin, true},
 			}
 
 			logger.Printf("Create slave admin script %d\n", i)
@@ -441,38 +442,38 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, nodes int, masterIp str
 	execAllMasters := "exec_all_" + masterPlural
 
 	scripts := []Script{
-		{globals.ScriptStartAll, globals.TmplStartAll, true},
-		{globals.ScriptRestartAll, globals.TmplRestartAll, true},
-		{globals.ScriptStatusAll, globals.TmplStatusAll, true},
-		{globals.ScriptTestSbAll, globals.TmplTestSbAll, true},
-		{globals.ScriptStopAll, globals.TmplStopAll, true},
-		{globals.ScriptClearAll, globals.TmplClearAll, true},
-		{globals.ScriptSendKillAll, globals.TmplSendKillAll, true},
-		{globals.ScriptUseAll, globals.TmplUseAll, true},
-		{globals.ScriptExecAll, globals.TmplExecAll, true},
-		{globals.ScriptMetadataAll, globals.TmplMetadataAll, true},
-		{useAllSlaves, globals.TmplUseAllSlaves, true},
-		{useAllMasters, globals.TmplUseAllMasters, true},
-		{initializeSlaves, globals.TmplInitializeSlaves, true},
-		{checkSlaves, globals.TmplCheckSlaves, true},
-		{masterAbbr, globals.TmplMaster, true},
-		{execAllSlaves, globals.TmplExecAllSlaves, true},
-		{execAllMasters, globals.TmplExecAllMasters, true},
-		{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
-		{"n1", globals.TmplMaster, true},
-		{globals.ScriptTestReplication, globals.TmplTestReplication, true},
-		{globals.ScriptReplicateFrom, globals.TmplReplReplicateFrom, true},
-		{globals.ScriptSysbench, globals.TmplReplSysbench, true},
-		{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
+		{globals.ScriptStartAll, TmplStartAll, true},
+		{globals.ScriptRestartAll, TmplRestartAll, true},
+		{globals.ScriptStatusAll, TmplStatusAll, true},
+		{globals.ScriptTestSbAll, TmplTestSbAll, true},
+		{globals.ScriptStopAll, TmplStopAll, true},
+		{globals.ScriptClearAll, TmplClearAll, true},
+		{globals.ScriptSendKillAll, TmplSendKillAll, true},
+		{globals.ScriptUseAll, TmplUseAll, true},
+		{globals.ScriptExecAll, TmplExecAll, true},
+		{globals.ScriptMetadataAll, TmplMetadataAll, true},
+		{useAllSlaves, TmplUseAllSlaves, true},
+		{useAllMasters, TmplUseAllMasters, true},
+		{initializeSlaves, TmplInitializeSlaves, true},
+		{checkSlaves, TmplCheckSlaves, true},
+		{masterAbbr, TmplMaster, true},
+		{execAllSlaves, TmplExecAllSlaves, true},
+		{execAllMasters, TmplExecAllMasters, true},
+		{globals.ScriptWipeRestartAll, TmplWipeAndRestartAll, true},
+		{"n1", TmplMaster, true},
+		{globals.ScriptTestReplication, TmplTestReplication, true},
+		{globals.ScriptReplicateFrom, TmplReplReplicateFrom, true},
+		{globals.ScriptSysbench, TmplReplSysbench, true},
+		{globals.ScriptSysbenchReady, TmplReplSysbenchReady, true},
 	}
 	if sandboxDef.SemiSyncOptions != "" {
-		scripts = append(scripts, Script{"post_initialization", globals.TmplSemiSyncStart, true})
+		scripts = append(scripts, Script{"post_initialization", TmplSemiSyncStart, true})
 	}
 	if sandboxDef.EnableAdminAddress {
 		scripts = append(scripts,
-			Script{masterAbbr + "a", globals.TmplMasterAdmin, true},
-			Script{"na1", globals.TmplMasterAdmin, true},
-			Script{globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true},
+			Script{masterAbbr + "a", TmplMasterAdmin, true},
+			Script{"na1", TmplMasterAdmin, true},
+			Script{globals.ScriptUseAllAdmin, TmplUseAllAdmin, true},
 		)
 	}
 

@@ -20,8 +20,6 @@ package sandbox
 
 import (
 	_ "embed"
-
-	"github.com/sjmudd/dbdeployer/globals"
 )
 
 //go:embed templates/ndb/ndb_start_cluster.gotxt
@@ -40,27 +38,27 @@ var ndbMgmTemplate string
 var ndbCheckStatusTemplate string
 
 var NdbTemplates = TemplateCollection{
-	globals.TmplNdbStartCluster: TemplateDesc{
+	TmplNdbStartCluster: TemplateDesc{
 		Description: "NDB start cluster",
 		Notes:       "",
 		Contents:    ndbStartTemplate,
 	},
-	globals.TmplNdbStopCluster: TemplateDesc{
+	TmplNdbStopCluster: TemplateDesc{
 		Description: "NDB stop cluster",
 		Notes:       "",
 		Contents:    ndbStopTemplate,
 	},
-	globals.TmplNdbConfig: TemplateDesc{
+	TmplNdbConfig: TemplateDesc{
 		Description: "NDB cluster configuration",
 		Notes:       "",
 		Contents:    ndbConfigTemplate,
 	},
-	globals.TmplNdbMgm: TemplateDesc{
+	TmplNdbMgm: TemplateDesc{
 		Description: "NDB cluster manager",
 		Notes:       "",
 		Contents:    ndbMgmTemplate,
 	},
-	globals.TmplNdbCheckStatus: TemplateDesc{
+	TmplNdbCheckStatus: TemplateDesc{
 		Description: "NDB check cluster status",
 		Notes:       "",
 		Contents:    ndbCheckStatusTemplate,

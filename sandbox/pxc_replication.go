@@ -302,7 +302,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) err
 			logger.Printf(installationMessage, nodeLabel, i)
 		}
 
-		pxcReplicationText := PxcTemplates[globals.TmplPxcReplication].Contents
+		pxcReplicationText := PxcTemplates[TmplPxcReplication].Contents
 
 		pxcReplicationData := common.StringMap{
 			"NodeIp":                   masterIp,
@@ -313,15 +313,15 @@ func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) err
 			"SstMethod":                sstMethod,
 			"PxcEncryptClusterTraffic": pxcEncryptClusterTraffic,
 		}
-		pxcFilledTemplate, err := common.SafeTemplateFill(globals.TmplPxcReplication, pxcReplicationText, pxcReplicationData)
+		pxcFilledTemplate, err := common.SafeTemplateFill(TmplPxcReplication, pxcReplicationText, pxcReplicationData)
 		if err != nil {
 			return fmt.Errorf("error filling pxc replication template %s", err)
 		}
 
 		sandboxDef.ReplOptions = baseReplicationOptions + fmt.Sprintf("\n%s\n", pxcFilledTemplate)
 
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplGtidOptions57].Contents)
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplReplCrashSafeOptions].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[TmplGtidOptions57].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[TmplReplCrashSafeOptions].Contents)
 		// 8.0.11
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
@@ -375,14 +375,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) err
 			"SandboxDir":        sandboxDef.SandboxDir,
 		}
 		logger.Printf("Create node script for node %d\n", i)
-		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), globals.TmplNode, sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), TmplNode, sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
 			logger.Printf("Create admin script for node %d\n", i)
 			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
-				globals.TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
+				TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
 			if err != nil {
 				return err
 			}
@@ -405,17 +405,17 @@ func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) err
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []Script{
-			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
-			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
-			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
-			{globals.ScriptStopAll, globals.TmplStopMulti, true},
-			{globals.ScriptClearAll, globals.TmplClearMulti, true},
-			{globals.ScriptSendKillAll, globals.TmplSendKillMulti, true},
-			{globals.ScriptUseAll, globals.TmplUseMulti, true},
-			{globals.ScriptMetadataAll, globals.TmplMetadataMulti, true},
-			{globals.ScriptReplicateFrom, globals.TmplReplicateFromMulti, true},
-			{globals.ScriptSysbench, globals.TmplSysbenchMulti, true},
-			{globals.ScriptSysbenchReady, globals.TmplSysbenchReadyMulti, true},
+			{globals.ScriptRestartAll, TmplRestartMulti, true},
+			{globals.ScriptStatusAll, TmplStatusMulti, true},
+			{globals.ScriptTestSbAll, TmplTestSbMulti, true},
+			{globals.ScriptStopAll, TmplStopMulti, true},
+			{globals.ScriptClearAll, TmplClearMulti, true},
+			{globals.ScriptSendKillAll, TmplSendKillMulti, true},
+			{globals.ScriptUseAll, TmplUseMulti, true},
+			{globals.ScriptMetadataAll, TmplMetadataMulti, true},
+			{globals.ScriptReplicateFrom, TmplReplicateFromMulti, true},
+			{globals.ScriptSysbench, TmplSysbenchMulti, true},
+			{globals.ScriptSysbenchReady, TmplSysbenchReadyMulti, true},
 		},
 	}
 
@@ -430,9 +430,9 @@ func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) err
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []Script{
-			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
-			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
-			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
+			{useAllSlaves, TmplMultiSourceUseSlaves, true},
+			{useAllMasters, TmplMultiSourceUseMasters, true},
+			{globals.ScriptTestReplication, TmplMultiSourceTest, true},
 		},
 	}
 	sbPxc := ScriptBatch{
@@ -441,8 +441,8 @@ func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) err
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []Script{
-			{globals.ScriptStartAll, globals.TmplPxcStart, true},
-			{globals.ScriptCheckNodes, globals.TmplPxcCheckNodes, true},
+			{globals.ScriptStartAll, TmplPxcStart, true},
+			{globals.ScriptCheckNodes, TmplPxcCheckNodes, true},
 		},
 	}
 
@@ -454,7 +454,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, nodes int, masterIp string) err
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
 		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,
-			globals.TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
+			TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return err
 		}

@@ -20,8 +20,6 @@ package sandbox
 
 import (
 	_ "embed"
-
-	"github.com/sjmudd/dbdeployer/globals"
 )
 
 // Templates for group replication
@@ -37,17 +35,17 @@ var (
 	groupReplOptionsTemplate string
 
 	GroupTemplates = TemplateCollection{
-		globals.TmplInitializeNodes: TemplateDesc{
+		TmplInitializeNodes: TemplateDesc{
 			Description: "Initialize group replication after deployment",
 			Notes:       "",
 			Contents:    initializeNodesTemplate,
 		},
-		globals.TmplCheckNodes: TemplateDesc{
+		TmplCheckNodes: TemplateDesc{
 			Description: "Checks the status of group replication",
 			Notes:       "",
 			Contents:    checkNodesTemplate,
 		},
-		globals.TmplGroupReplOptions: TemplateDesc{
+		TmplGroupReplOptions: TemplateDesc{
 			Description: "replication options for Group replication node",
 			Notes:       "",
 			Contents:    groupReplOptionsTemplate,

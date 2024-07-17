@@ -21,10 +21,11 @@ import (
 	"path"
 	"runtime"
 
+	"github.com/pkg/errors"
+
 	"github.com/sjmudd/dbdeployer/common"
 	"github.com/sjmudd/dbdeployer/defaults"
 	"github.com/sjmudd/dbdeployer/globals"
-	"github.com/pkg/errors"
 )
 
 // Code in this module creates a fake directory structure that allows
@@ -32,7 +33,7 @@ import (
 
 const (
 	DefaultMockDir       = "mock_dir"
-	noOpMockTemplateName = globals.TmplNoOpMock
+	noOpMockTemplateName = TmplNoOpMock
 )
 
 var (
@@ -170,7 +171,7 @@ func MySQLMockSet(debug bool) []MockFileSet {
 		[]Script{
 			{mysqld, noOpMockTemplateName, true},
 			{globals.FnMysql, noOpMockTemplateName, true},
-			{globals.FnMysqldSafe, globals.TmplMysqldSafeMock, true},
+			{globals.FnMysqldSafe, TmplMysqldSafeMock, true},
 		},
 	}
 	scriptsFileSet := MockFileSet{

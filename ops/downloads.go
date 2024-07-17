@@ -23,11 +23,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/sjmudd/dbdeployer/common"
 	"github.com/sjmudd/dbdeployer/downloads"
 	"github.com/sjmudd/dbdeployer/globals"
 	"github.com/sjmudd/dbdeployer/rest"
-	"github.com/dustin/go-humanize"
 )
 
 type DownloadsOptions struct {

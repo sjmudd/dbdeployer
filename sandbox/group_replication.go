@@ -22,13 +22,14 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/dustin/go-humanize/english"
+	"github.com/pkg/errors"
+
 	"github.com/sjmudd/dbdeployer/common"
 	"github.com/sjmudd/dbdeployer/concurrent"
 	"github.com/sjmudd/dbdeployer/convert"
 	"github.com/sjmudd/dbdeployer/defaults"
 	"github.com/sjmudd/dbdeployer/globals"
-	"github.com/dustin/go-humanize/english"
-	"github.com/pkg/errors"
 )
 
 func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
@@ -93,6 +94,31 @@ func getBaseAdminPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 		}
 	}
 	return baseAdminPort, nil
+}
+
+// generateTransactionWriteSetConfiguration does just this based on the version.
+// - for 5.7 / 8.0 the setting is enabled
+// - for 8.4 / 9.X the setting is removed
+func generateTransactionWriteSetConfiguration(version string) string {
+	var config string
+
+	if !convert.IsMySQL84CompatibleVersion(version) {
+		config = `# Only used now on MySQL 5.7/8.0
+transaction_write_set_extraction=XXHASH64
+`
+	}
+	return config
+}
+
+func generateMasterInfoRepositoryConfiguration(version string) string {
+	var config string
+
+	if !convert.IsMySQL84CompatibleVersion(version) {
+		config = `# Used everywhere except for MySQL 8.4/9.X
+master-info-repository=table
+`
+	}
+	return config
 }
 
 func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) error {
@@ -332,24 +358,26 @@ func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) e
 
 		basePortText := fmt.Sprintf("%08d", basePort)
 		replicationData := common.StringMap{
-			"BasePort":       basePortText,
-			"GroupSeeds":     connectionString,
-			"LocalAddresses": fmt.Sprintf("%s:%d", masterIp, groupPort),
-			"PrimaryMode":    singlePrimaryMode,
+			"BasePort":                  basePortText,
+			"GroupSeeds":                connectionString,
+			"LocalAddresses":            fmt.Sprintf("%s:%d", masterIp, groupPort),
+			"PrimaryMode":               singlePrimaryMode,
+			"TransactionWriteSetConfig": generateTransactionWriteSetConfiguration(sandboxDef.Version),
 		}
 
 		replOptionsText, err := common.SafeTemplateFill("group_replication",
-			GroupTemplates[globals.TmplGroupReplOptions].Contents, replicationData)
+			GroupTemplates[TmplGroupReplOptions].Contents, replicationData)
 		if err != nil {
 			return err
 		}
-		sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents + "\n" + replOptionsText
+		sandboxDef.ReplOptions = SingleTemplates[TmplReplicationOptions].Contents + "\n" + replOptionsText
 
 		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
 
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplGtidOptions57].Contents)
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplReplCrashSafeOptions].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[TmplGtidOptions57].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", generateMasterInfoRepositoryConfiguration(sandboxDef.Version))
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[TmplReplCrashSafeOptions].Contents)
 
 		// 8.0.11
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
@@ -398,12 +426,12 @@ func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) e
 			"SandboxDir":        sandboxDef.SandboxDir,
 		}
 		logger.Printf("Create node script for node %d\n", i)
-		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), globals.TmplNode, sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), TmplNode, sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
-			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i), globals.TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
+			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i), TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
 			if err != nil {
 				return err
 			}
@@ -434,19 +462,19 @@ func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) e
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []Script{
-			{globals.ScriptStartAll, globals.TmplStartMulti, true},
-			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
-			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
-			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
-			{globals.ScriptStopAll, globals.TmplStopMulti, true},
-			{globals.ScriptClearAll, globals.TmplClearMulti, true},
-			{globals.ScriptSendKillAll, globals.TmplSendKillMulti, true},
-			{globals.ScriptUseAll, globals.TmplUseMulti, true},
-			{globals.ScriptMetadataAll, globals.TmplMetadataMulti, true},
-			{globals.ScriptReplicateFrom, globals.TmplReplicateFromMulti, true},
-			{globals.ScriptSysbench, globals.TmplSysbenchMulti, true},
-			{globals.ScriptSysbenchReady, globals.TmplSysbenchReadyMulti, true},
-			{globals.ScriptExecAll, globals.TmplExecMulti, true},
+			{globals.ScriptStartAll, TmplStartMulti, true},
+			{globals.ScriptRestartAll, TmplRestartMulti, true},
+			{globals.ScriptStatusAll, TmplStatusMulti, true},
+			{globals.ScriptTestSbAll, TmplTestSbMulti, true},
+			{globals.ScriptStopAll, TmplStopMulti, true},
+			{globals.ScriptClearAll, TmplClearMulti, true},
+			{globals.ScriptSendKillAll, TmplSendKillMulti, true},
+			{globals.ScriptUseAll, TmplUseMulti, true},
+			{globals.ScriptMetadataAll, TmplMetadataMulti, true},
+			{globals.ScriptReplicateFrom, TmplReplicateFromMulti, true},
+			{globals.ScriptSysbench, TmplSysbenchMulti, true},
+			{globals.ScriptSysbenchReady, TmplSysbenchReadyMulti, true},
+			{globals.ScriptExecAll, TmplExecMulti, true},
 		},
 	}
 	sbRepl := ScriptBatch{
@@ -455,12 +483,12 @@ func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) e
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []Script{
-			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
-			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
-			{execAllMasters, globals.TmplMultiSourceExecMasters, true},
-			{execAllSlaves, globals.TmplMultiSourceExecSlaves, true},
-			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
-			{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
+			{useAllSlaves, TmplMultiSourceUseSlaves, true},
+			{useAllMasters, TmplMultiSourceUseMasters, true},
+			{execAllMasters, TmplMultiSourceExecMasters, true},
+			{execAllSlaves, TmplMultiSourceExecSlaves, true},
+			{globals.ScriptTestReplication, TmplMultiSourceTest, true},
+			{globals.ScriptWipeRestartAll, TmplWipeAndRestartAll, true},
 		},
 	}
 	sbGroup := ScriptBatch{
@@ -469,9 +497,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) e
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []Script{
-			{globals.ScriptInitializeNodes, globals.TmplInitializeNodes, true},
-
-			{globals.ScriptCheckNodes, globals.TmplCheckNodes, true},
+			{globals.ScriptInitializeNodes, TmplInitializeNodes, true},
+			{globals.ScriptCheckNodes, TmplCheckNodes, true},
 		},
 	}
 
@@ -483,7 +510,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) e
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
 		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,
-			globals.TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
+			TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return err
 		}
@@ -494,8 +521,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, nodes int, masterIp string) e
 	if !sandboxDef.SkipStart {
 		common.CondPrintln(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), globals.ScriptInitializeNodes))
 		logger.Printf("Running group replication initialization script\n")
-		_, err := common.RunCmd(path.Join(sandboxDef.SandboxDir, globals.ScriptInitializeNodes))
-		if err != nil {
+		if _, err := common.RunCmd(path.Join(sandboxDef.SandboxDir, globals.ScriptInitializeNodes)); err != nil {
 			return fmt.Errorf("error initializing group replication: %s", err)
 		}
 	}

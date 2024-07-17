@@ -28,14 +28,15 @@ import (
 	"time"
 
 	"github.com/alexeyco/simpletable"
+	"github.com/dustin/go-humanize"
+	"github.com/spf13/cobra"
+
 	"github.com/sjmudd/dbdeployer/common"
 	"github.com/sjmudd/dbdeployer/defaults"
 	"github.com/sjmudd/dbdeployer/downloads"
 	"github.com/sjmudd/dbdeployer/globals"
 	"github.com/sjmudd/dbdeployer/ops"
 	"github.com/sjmudd/dbdeployer/rest"
-	"github.com/dustin/go-humanize"
-	"github.com/spf13/cobra"
 )
 
 func treeRemoteTarballs(cmd *cobra.Command, args []string) {

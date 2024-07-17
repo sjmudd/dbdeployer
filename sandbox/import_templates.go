@@ -23,8 +23,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-
-	"github.com/sjmudd/dbdeployer/globals"
 )
 
 var (
@@ -56,92 +54,92 @@ var (
 )
 
 var ImportTemplates = TemplateCollection{
-	globals.TmplImportInitDb: TemplateDesc{
+	TmplImportInitDb: TemplateDesc{
 		Description: "Initialization template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportUse: TemplateDesc{
+	TmplImportUse: TemplateDesc{
 		Description: "use template for the imported server",
 		Notes:       "",
 		Contents:    importUseTemplate,
 	},
-	globals.TmplImportStart: TemplateDesc{
+	TmplImportStart: TemplateDesc{
 		Description: "start template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportRestart: TemplateDesc{
+	TmplImportRestart: TemplateDesc{
 		Description: "restart template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportStatus: TemplateDesc{
+	TmplImportStatus: TemplateDesc{
 		Description: "status template for the imported server",
 		Notes:       "",
 		Contents:    importStatusTemplate,
 	},
-	globals.TmplImportSendKill: TemplateDesc{
+	TmplImportSendKill: TemplateDesc{
 		Description: "send_kill template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportStop: TemplateDesc{
+	TmplImportStop: TemplateDesc{
 		Description: "stop template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportLoadGrants: TemplateDesc{
+	TmplImportLoadGrants: TemplateDesc{
 		Description: "load_grants template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportClear: TemplateDesc{
+	TmplImportClear: TemplateDesc{
 		Description: "clear template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportAddOption: TemplateDesc{
+	TmplImportAddOption: TemplateDesc{
 		Description: "add_option template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportShowBinlog: TemplateDesc{
+	TmplImportShowBinlog: TemplateDesc{
 		Description: "show_binlog template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportShowLog: TemplateDesc{
+	TmplImportShowLog: TemplateDesc{
 		Description: "show_log template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportShowRelaylog: TemplateDesc{
+	TmplImportShowRelaylog: TemplateDesc{
 		Description: "show_relaylog template for the imported server",
 		Notes:       "no op",
 		Contents:    noOpTemplate,
 	},
-	globals.TmplImportMysqlsh: TemplateDesc{
+	TmplImportMysqlsh: TemplateDesc{
 		Description: "Invokes the MySQL shell with an appropriate URI for imported server",
 		Notes:       "",
 		Contents:    importMysqlshTemplate,
 	},
-	globals.TmplImportMyCnf: TemplateDesc{
+	TmplImportMyCnf: TemplateDesc{
 		Description: "configuration file for imported mysql client",
 		Notes:       "",
 		Contents:    ImportMyCnfTemplate,
 	},
-	globals.TmplImportTestSb: TemplateDesc{
+	TmplImportTestSb: TemplateDesc{
 		Description: "Tests basic imported sandbox functionality",
 		Notes:       "",
 		Contents:    importTestSbTemplate,
 	},
-	globals.TmplImportSbInclude: TemplateDesc{
+	TmplImportSbInclude: TemplateDesc{
 		Description: "Common variables and routines for imported sandboxes scripts",
 		Notes:       "",
 		Contents:    importSbIncludeTemplate,
 	},
-	globals.TmplImportMetadata: TemplateDesc{
+	TmplImportMetadata: TemplateDesc{
 		Description: "Show data about the sandbox",
 		Notes:       "",
 		Contents:    importMetadataTemplate,

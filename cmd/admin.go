@@ -22,11 +22,12 @@ import (
 	"path"
 	"sort"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/sjmudd/dbdeployer/common"
 	"github.com/sjmudd/dbdeployer/globals"
 	"github.com/sjmudd/dbdeployer/sandbox"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
 func unPreserveSandbox(sandboxDir, sandboxName string) {
@@ -94,10 +95,10 @@ func preserveSandbox(sandboxDir, sandboxName string) {
 	}
 	err := os.Rename(clear, noClear)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileRenamingScript, err)
-	template := sandbox.SingleTemplates[globals.TmplSbLocked].Contents
+	template := sandbox.SingleTemplates[sandbox.TmplSbLocked].Contents
 	var data = common.StringMap{
 		"ShellPath":    defaults.Defaults().ShellPath,
-		"TemplateName": globals.TmplSbLocked,
+		"TemplateName": sandbox.TmplSbLocked,
 		"SandboxDir":   sandboxName,
 		"AppVersion":   common.VersionDef,
 		"Copyright":    globals.ShellScriptCopyright,

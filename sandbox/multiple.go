@@ -21,11 +21,12 @@ import (
 	"path"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/sjmudd/dbdeployer/common"
 	"github.com/sjmudd/dbdeployer/concurrent"
 	"github.com/sjmudd/dbdeployer/defaults"
 	"github.com/sjmudd/dbdeployer/globals"
-	"github.com/pkg/errors"
 )
 
 type Node struct {
@@ -113,7 +114,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 
 	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", sandboxDef.SandboxDir)
 
-	sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents
+	sandboxDef.ReplOptions = SingleTemplates[TmplReplicationOptions].Contents
 	// baseServerId := sandboxDef.BaseServerId
 	if nodes < 2 {
 		return emptyStringMap, fmt.Errorf("only one node requested. For single sandbox deployment, use the 'single' command")
@@ -227,14 +228,14 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		}
 		logger.Printf("Creating node script for node %d\n", i)
 		logger.Printf("Defining multiple sandbox node inner data: %v\n", stringMapToJson(dataNode))
-		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), globals.TmplNode, sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), TmplNode, sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return data, err
 		}
 		if sandboxDef.EnableAdminAddress {
 			logger.Printf("Creating admin script for node %d\n", i)
 			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
-				globals.TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
+				TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
 			if err != nil {
 				return data, err
 			}
@@ -257,19 +258,19 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		sandboxDir: sandboxDef.SandboxDir,
 		data:       data,
 		scripts: []Script{
-			{globals.ScriptStartAll, globals.TmplStartMulti, true},
-			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
-			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
-			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
-			{globals.ScriptStopAll, globals.TmplStopMulti, true},
-			{globals.ScriptClearAll, globals.TmplClearMulti, true},
-			{globals.ScriptSendKillAll, globals.TmplSendKillMulti, true},
-			{globals.ScriptUseAll, globals.TmplUseMulti, true},
-			{globals.ScriptExecAll, globals.TmplExecMulti, true},
-			{globals.ScriptMetadataAll, globals.TmplMetadataMulti, true},
-			{globals.ScriptReplicateFrom, globals.TmplReplicateFromMulti, true},
-			{globals.ScriptSysbench, globals.TmplSysbenchMulti, true},
-			{globals.ScriptSysbenchReady, globals.TmplSysbenchReadyMulti, true},
+			{globals.ScriptStartAll, TmplStartMulti, true},
+			{globals.ScriptRestartAll, TmplRestartMulti, true},
+			{globals.ScriptStatusAll, TmplStatusMulti, true},
+			{globals.ScriptTestSbAll, TmplTestSbMulti, true},
+			{globals.ScriptStopAll, TmplStopMulti, true},
+			{globals.ScriptClearAll, TmplClearMulti, true},
+			{globals.ScriptSendKillAll, TmplSendKillMulti, true},
+			{globals.ScriptUseAll, TmplUseMulti, true},
+			{globals.ScriptExecAll, TmplExecMulti, true},
+			{globals.ScriptMetadataAll, TmplMetadataMulti, true},
+			{globals.ScriptReplicateFrom, TmplReplicateFromMulti, true},
+			{globals.ScriptSysbench, TmplSysbenchMulti, true},
+			{globals.ScriptSysbenchReady, TmplSysbenchReadyMulti, true},
 		},
 	}
 
@@ -280,7 +281,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
 		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,
-			globals.TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
+			TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return data, err
 		}

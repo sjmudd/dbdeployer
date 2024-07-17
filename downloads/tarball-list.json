@@ -1414,6 +1414,21 @@
     "date_added": "2024-07-02 15:00"
    },
    {
+    "name": "mysql-9.0.0-linux-glibc2.17-x86_64-minimal.tar.xz",
+    "checksum": "MD5:9e815d4bbf888b28c52b74da0d5c65f0",
+    "OS": "linux",
+    "arch": "x86_64",
+    "url": "https://dev.mysql.com/get/Downloads/MySQL-9.0/mysql-9.0.0-linux-glibc2.17-x86_64-minimal.tar.xz",
+    "flavor": "mysql",
+    "minimal": true,
+    "size": 61334068,
+    "short_version": "9.0",
+    "version": "9.0.0",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-07-17 09:44"
+   },
+   {
     "name": "mysql-9.0.0-linux-glibc2.28-x86_64.tar.xz",
     "checksum": "MD5:f22dd69628af5fcf9211c59b090990a4",
     "OS": "linux",
