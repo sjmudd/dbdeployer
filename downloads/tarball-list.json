@@ -1238,6 +1238,21 @@
     "date_added": "2024-05-26 08:14"
    },
    {
+    "name": "mysql-8.0.36-linux-glibc2.28-x86_64.tar.xz",
+    "checksum": "MD5:597a7520a80323b7d1819f0bad678324",
+    "OS": "linux",
+    "arch": "x86_64",
+    "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.36-linux-glibc2.28-x86_64.tar.xz",
+    "flavor": "mysql",
+    "minimal": false,
+    "size": 459718996,
+    "short_version": "8.0",
+    "version": "8.0.36",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-07-26 08:35"
+   },
+   {
     "name": "mysql-8.0.37-macos14-arm64.tar.gz",
     "checksum": "MD5:6261e8247469f5b3217f2a1fafbedae2",
     "OS": "Darwin",
@@ -1265,6 +1280,21 @@
     "updated_by": "addUrltoCollection",
     "notes": "added with version 1.73.3",
     "date_added": "2024-07-03 11:52"
+   },
+   {
+    "name": "mysql-8.0.39-linux-glibc2.28-x86_64.tar.xz",
+    "checksum": "MD5:2c784d6d6fcf37bb289ec20aa78f3518",
+    "OS": "linux",
+    "arch": "x86_64",
+    "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.39-linux-glibc2.28-x86_64.tar.xz",
+    "flavor": "mysql",
+    "minimal": false,
+    "size": 464237836,
+    "short_version": "8.0",
+    "version": "8.0.39",
+    "updated_by": "addUrltoCollection",
+    "notes": "added with version 1.73.3",
+    "date_added": "2024-07-26 08:28"
    },
    {
     "name": "mysql-8.2.0-macos13-arm64.tar.gz",
