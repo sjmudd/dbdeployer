@@ -29,7 +29,7 @@ host = "127.0.0.1"
 # tidb server advertise IP.
 advertise-address = ""
 # TiDB server port.
-port = 3030 
+port = 3030
 # Registered store name, [tikv, mocktikv]
 store = "mocktikv"
 # TiDB storage path.
@@ -99,7 +99,7 @@ cluster-ssl-cert = ""
 cluster-ssl-key = ""
 [status]
 # If enable status report HTTP service.
-report-status = false 
+report-status = false
 # TiDB status port.
 status-port = 10080
 # Prometheus pushgateway address, leaves it empty will disable prometheus push.

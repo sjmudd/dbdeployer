@@ -1,16 +1,16 @@
 {
- 	"basedir": "/Users/robertogarciadebem/Source codes/dbdeployer/sandbox/mock_dir/home/opt/mysql/3.0.30",
- 	"client_basedir": "/Users/robertogarciadebem/Source codes/dbdeployer/sandbox/mock_dir/home/opt/mysql/5.7.25",
- 	"type": "single",
- 	"version": "3.0.30",
- 	"flavor": "tidb",
- 	"host": "127.0.0.1",
- 	"port": [
- 		3030
- 	],
- 	"nodes": 0,
- 	"node_num": 0,
- 	"dbdeployer-version": "1.73.0",
- 	"timestamp": "Thu Jun 26 18:51:24 -03 2025",
- 	"command-line": ""
+    "basedir": "/Users/robertogarciadebem/Source codes/dbdeployer/sandbox/mock_dir/home/opt/mysql/3.0.30",
+    "client_basedir": "/Users/robertogarciadebem/Source codes/dbdeployer/sandbox/mock_dir/home/opt/mysql/5.7.25",
+    "type": "single",
+    "version": "3.0.30",
+    "flavor": "tidb",
+    "host": "127.0.0.1",
+    "port": [
+        3030
+    ],
+    "nodes": 0,
+    "node_num": 0,
+    "dbdeployer-version": "1.73.0",
+    "timestamp": "Thu Jun 26 18:51:24 -03 2025",
+    "command-line": ""
  }

@@ -20,8 +20,8 @@ prompt='TiDB [\h:3030] {\u} (\d) > '
 #
 
 [client]
-user               = msandbox 
-password           = msandbox 
+user               = msandbox
+password           = msandbox
 port               = 3030
 socket             = /Users/robertogarciadebem/Source codes/dbdeployer/sandbox/mock_dir/home/sandboxes/msb_3_0_30/data/mysql_sandbox3030.sock
 

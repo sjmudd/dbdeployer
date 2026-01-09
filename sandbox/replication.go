@@ -184,7 +184,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			autoPosOpt = "MASTER_AUTO_POSITION=1"
 		}
 		masterAutoPosition += ", " + autoPosOpt
-		logger.Printf("Adding %s to slaves setup\n", autoPosOpt)		
+		logger.Printf("Adding %s to slaves setup\n", autoPosOpt)
 	}
 	// 8.0.11
 	// isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)

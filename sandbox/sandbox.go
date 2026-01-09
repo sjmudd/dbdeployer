@@ -940,7 +940,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			{globals.ScriptWipeAndRestart, globals.TmplWipeAndRestart, true},
 		},
 	}
-	
+
 	tmplConnection := globals.TmplConnectionInfoSql84
 	if strings.HasPrefix(shortVersion, "5") || strings.HasPrefix(shortVersion, "8.0") {
 		tmplConnection = globals.TmplConnectionInfoSql

@@ -330,7 +330,7 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	}
 	if sandboxDef.DirName == "" {
 		sandboxDef.DirName = defaults.Defaults().FanInPrefix + common.VersionToName(origin)
-	}	
+	}
 	if sandboxDef.BasePort == 0 {
 		sandboxDef.BasePort = sandboxDef.Port + defaults.Defaults().FanInReplicationBasePort + (rev * 100)
 	}

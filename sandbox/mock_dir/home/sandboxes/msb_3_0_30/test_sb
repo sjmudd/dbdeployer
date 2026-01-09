@@ -89,7 +89,7 @@ else
         echo "not ok - no port detected"
         fail=$((fail+1))
     fi
-    
+
     if [ -n "$( echo $version| grep $expected_version)" ]
     then
         echo "ok - version is $version as expected"

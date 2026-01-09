@@ -106,9 +106,9 @@ if [[ "v$master_sortable_version" > "v$minimum_version_gtid" ]]
 then
 	if [[ "v$slave_sortable_version" > "v$minimum_version_gtid" ]]
 	then
-  	    can_use_gtid=1
-  	fi
-fi  
+        can_use_gtid=1
+    fi
+fi
 if [ -z "$master_sortable_version" -o -z "$slave_sortable_version" ]
 then
     unset can_use_gtid
@@ -138,7 +138,7 @@ then
         else
             echo "Only one server is using GTID. Either both or none of them should have GTID enabled"
             exit 1
-        fi  
+        fi
     fi
 fi
 
