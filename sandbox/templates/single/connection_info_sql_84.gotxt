@@ -1,0 +1,5 @@
+
+CHANGE REPLICATION SOURCE TO source_host="{{.SbHost}}",
+source_port={{.Port}},
+source_user="{{.RplUser}}",
+source_password="{{.RplPassword}}"

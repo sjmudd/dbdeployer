@@ -20,6 +20,7 @@ import (
 	"os"
 	"path"
 	"time"
+	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
@@ -125,6 +126,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		return err
 	}
 	rev := vList[2]
+	shortVersion := fmt.Sprintf("%d.%d", vList[0], vList[1])
 	basePort := computeBaseport(sandboxDef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100))
 	if sandboxDef.BasePort > 0 {
 		basePort = sandboxDef.BasePort
@@ -177,8 +179,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	changeMasterExtra := ""
 	masterAutoPosition := ""
 	if sandboxDef.GtidOptions != "" {
-		masterAutoPosition += ", MASTER_AUTO_POSITION=1"
-		logger.Printf("Adding MASTER_AUTO_POSITION to slaves setup\n")
+		var autoPosOpt string = "SOURCE_AUTO_POSITION=1"
+		if strings.HasPrefix(shortVersion, "5") || strings.HasPrefix(shortVersion, "8.0") {
+			autoPosOpt = "MASTER_AUTO_POSITION=1"
+		}
+		masterAutoPosition += ", " + autoPosOpt
+		logger.Printf("Adding %s to slaves setup\n", autoPosOpt)
 	}
 	// 8.0.11
 	// isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
@@ -188,7 +194,11 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	}
 	if isMinimumNativeAuthPlugin {
 		if !sandboxDef.NativeAuthPlugin {
-			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, "GET_MASTER_PUBLIC_KEY=1")
+			var publicKeyOpt string = "GET_SOURCE_PUBLIC_KEY=1"
+			if strings.HasPrefix(shortVersion, "5") || strings.HasPrefix(shortVersion, "8.0") {
+				publicKeyOpt = "GET_MASTER_PUBLIC_KEY=1"
+			}
+			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, publicKeyOpt)
 		}
 	}
 	slaves := nodes - 1
@@ -429,7 +439,6 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			{globals.ScriptMetadataAll, globals.TmplMetadataAll, true},
 			{useAllSlaves, globals.TmplUseAllSlaves, true},
 			{useAllMasters, globals.TmplUseAllMasters, true},
-			{initializeSlaves, globals.TmplInitSlaves, true},
 			{checkSlaves, globals.TmplCheckSlaves, true},
 			{masterAbbr, globals.TmplMaster, true},
 			{execAllSlaves, globals.TmplExecAllSlaves, true},
@@ -442,6 +451,11 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
 		},
 	}
+	tmpl := globals.TmplInitSlaves84
+	if strings.HasPrefix(shortVersion, "5") || strings.HasPrefix(shortVersion, "8.0") {
+		tmpl = globals.TmplInitSlaves
+	}
+	sb.scripts = append(sb.scripts, ScriptDef{initializeSlaves, tmpl, true})
 	if sandboxDef.SemiSyncOptions != "" {
 		sb.scripts = append(sb.scripts, ScriptDef{"post_initialization", globals.TmplSemiSyncStart, true})
 	}

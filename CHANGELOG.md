@@ -1,3 +1,9 @@
+## 1.74.0	12-Dec-2025
+
+## ADJUSTMENTS
+
+* Add the support for MySQL 8.4
+
 ## 1.73.0	09-Jul-2023
 
 ## NEW FEATURES

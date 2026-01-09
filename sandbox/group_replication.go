@@ -20,6 +20,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -125,6 +126,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		return err
 	}
 	rev := vList[2]
+	shortVersion := fmt.Sprintf("%d.%d", vList[0], vList[1])
 	basePort := computeBaseport(sandboxDef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100))
 	if sandboxDef.SinglePrimary {
 		basePort = sandboxDef.Port + defaults.Defaults().GroupReplicationSpBasePort + (rev * 100)
@@ -330,8 +332,12 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			"PrimaryMode":    singlePrimaryMode,
 		}
 
+		tmplGroup := globals.TmplGroupReplOptions84
+		if strings.HasPrefix(shortVersion, "5") || strings.HasPrefix(shortVersion, "8.0") {
+			tmplGroup = globals.TmplGroupReplOptions
+		}
 		replOptionsText, err := common.SafeTemplateFill("group_replication",
-			GroupTemplates[globals.TmplGroupReplOptions].Contents, replicationData)
+			GroupTemplates[tmplGroup].Contents, replicationData)
 		if err != nil {
 			return err
 		}
@@ -341,8 +347,12 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
 
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplGtidOptions57].Contents)
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplReplCrashSafeOptions].Contents)
 
+		tmplKey := globals.TmplReplCrashSafeOptions84
+		if strings.HasPrefix(shortVersion, "5") || strings.HasPrefix(shortVersion, "8.0") {
+			tmplKey = globals.TmplReplCrashSafeOptions
+		}
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[tmplKey].Contents)
 		// 8.0.11
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
@@ -455,13 +465,18 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
 		},
 	}
+
+	tmplInitNodes := globals.TmplInitNodes
+	if strings.HasPrefix(shortVersion, "8.4") {
+		tmplInitNodes = globals.TmplInitNodes84
+	}
 	sbGroup := ScriptBatch{
 		tc:         GroupTemplates,
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptInitializeNodes, globals.TmplInitNodes, true},
+			{globals.ScriptInitializeNodes, tmplInitNodes, true},
 			{globals.ScriptCheckNodes, globals.TmplCheckNodes, true},
 		},
 	}

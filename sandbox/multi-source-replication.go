@@ -317,16 +317,20 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	if slaveList == "" {
 		slaveList = globals.SlaveListValue
 	}
-	sandboxDef.GtidOptions = SingleTemplates[globals.TmplGtidOptions57].Contents
-	sandboxDef.ReplCrashSafeOptions = SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
-	if sandboxDef.DirName == "" {
-		sandboxDef.DirName = defaults.Defaults().FanInPrefix + common.VersionToName(origin)
-	}
 	vList, err := common.VersionToList(sandboxDef.Version)
 	if err != nil {
 		return err
 	}
 	rev := vList[0]
+	shortVersion := fmt.Sprintf("%d.%d", vList[0], vList[1])
+	sandboxDef.GtidOptions = SingleTemplates[globals.TmplGtidOptions57].Contents
+	sandboxDef.ReplCrashSafeOptions = SingleTemplates[globals.TmplReplCrashSafeOptions84].Contents
+	if strings.HasPrefix(shortVersion, "5") || strings.HasPrefix(shortVersion, "8.0") {
+		sandboxDef.ReplCrashSafeOptions = SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
+	}
+	if sandboxDef.DirName == "" {
+		sandboxDef.DirName = defaults.Defaults().FanInPrefix + common.VersionToName(origin)
+	}
 	if sandboxDef.BasePort == 0 {
 		sandboxDef.BasePort = sandboxDef.Port + defaults.Defaults().FanInReplicationBasePort + (rev * 100)
 	}

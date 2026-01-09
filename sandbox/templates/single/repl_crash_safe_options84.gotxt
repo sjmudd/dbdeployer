@@ -1,0 +1,3 @@
+
+# replication crash-safe options
+relay-log-recovery=on

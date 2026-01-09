@@ -398,7 +398,10 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumGtid {
 			sd.GtidOptions = sandbox.SingleTemplates[templateName].Contents
-			sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
+			sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions84].Contents
+			if strings.HasPrefix(sd.Version, "5") || strings.HasPrefix(sd.Version, "8.0") {
+				sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
+			}
 			sd.ReplOptions = sandbox.SingleTemplates[globals.TmplReplicationOptions].Contents
 			if sd.ServerId == 0 {
 				sd.PortAsServerId = true
@@ -416,7 +419,10 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		isMinimumCrashSafe, err := common.HasCapability(sd.Flavor, common.CrashSafe, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumCrashSafe {
-			sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
+			sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions84].Contents
+			if strings.HasPrefix(sd.Version, "5") || strings.HasPrefix(sd.Version, "8.0") {
+				sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
+			}
 		} else {
 			common.Exitf(1, globals.ErrOptionRequiresVersion, globals.ReplCrashSafeLabel, common.IntSliceToDottedString(globals.MinimumCrashSafeVersion))
 		}

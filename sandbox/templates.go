@@ -128,6 +128,9 @@ var (
 	//go:embed templates/single/repl_crash_safe_options.gotxt
 	replCrashSafeOptions string
 
+	//go:embed templates/single/repl_crash_safe_options84.gotxt
+	replCrashSafeOptions84 string
+
 	//go:embed templates/single/gtid_options_56.gotxt
 	gtidOptions56 string
 
@@ -157,6 +160,9 @@ var (
 
 	//go:embed templates/single/connection_info_sql.gotxt
 	connectionInfoSql string
+
+	//go:embed templates/single/connection_info_sql_84.gotxt
+	connectionInfoSql84 string
 
 	//go:embed templates/single/connection_info_json.gotxt
 	ConnectionInfoJson string
@@ -217,6 +223,11 @@ var (
 			Description: "Replication crash safe options",
 			Notes:       "",
 			Contents:    replCrashSafeOptions,
+		},
+		globals.TmplReplCrashSafeOptions84: TemplateDesc{
+			Description: "Replication crash safe options for 8.4.x",
+			Notes:       "",
+			Contents:    replCrashSafeOptions84,
 		},
 		globals.TmplExposeDdTables: TemplateDesc{
 			Description: "Commands needed to enable data dictionary table usage",
@@ -362,6 +373,11 @@ var (
 			Description: "connection info to replicate from this sandbox",
 			Notes:       "",
 			Contents:    connectionInfoSql,
+		},
+		globals.TmplConnectionInfoSql84: TemplateDesc{
+			Description: "connection info to replicate from this sandbox for 8.4.X",
+			Notes:       "",
+			Contents:    connectionInfoSql84,
 		},
 		globals.TmplConnectionInfoConf: TemplateDesc{
 			Description: "connection info to replicate from this sandbox (.conf)",

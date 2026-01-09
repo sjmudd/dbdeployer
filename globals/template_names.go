@@ -64,6 +64,7 @@ const (
 	TmplTestReplication        = "test_replication"
 	TmplMultiSource            = "multi_source"
 	TmplInitSlaves             = "init_slaves"
+	TmplInitSlaves84           = "initSlavesTemplate84"
 	TmplClearAll               = "clear_all"
 	TmplSlaveAdmin             = "slave_admin"
 	TmplCheckMultiSource       = "check_multi_source"
@@ -108,9 +109,11 @@ const (
 	TmplWipeAndRestart          = "wipe_and_restart"
 	TmplCopyright               = "copyright"
 	TmplReplCrashSafeOptions    = "repl_crash_safe_options"
+	TmplReplCrashSafeOptions84  = "repl_crash_safe_options84"
 	TmplSbLocked                = "sb_locked"
 	TmplSbInclude               = "sb_include"
 	TmplConnectionInfoSql       = "connection_info_sql"
+	TmplConnectionInfoSql84     = "connection_info_sql84"
 	TmplMetadata                = "metadata"
 	TmplSemisyncMasterOptions   = "semisync_master_options"
 	TmplGrants57                = "grants57"
@@ -165,7 +168,9 @@ const (
 	TmplTidbMyCnf      = "tidb_my_cnf"
 
 	// group
-	TmplInitNodes        = "init_nodes"
-	TmplCheckNodes       = "check_nodes"
-	TmplGroupReplOptions = "group_repl_options"
+	TmplInitNodes          = "init_nodes"
+	TmplInitNodes84        = "init_nodes84"
+	TmplCheckNodes         = "check_nodes"
+	TmplGroupReplOptions   = "group_repl_options"
+	TmplGroupReplOptions84 = "group_repl_options84"
 )

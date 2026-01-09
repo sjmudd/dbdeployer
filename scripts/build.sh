@@ -22,6 +22,7 @@ cd $build_dir
 build_script=$PWD/$build_script
 cd ..
 build_dir=$PWD
+mkdir -p build
 
 export GO111MODULE=on
 goversion=$(go version)
@@ -154,7 +155,7 @@ case $target in
         $build_script linux $version
         ;;
     OSX)
-        binary=dbdeployer-${version}${docs_tag}.osx
+        binary=build/dbdeployer-${version}${docs_tag}.osx
         has_lipo=$(find_in_path lipo)
         if [ -n "$has_lipo" ]
         then
@@ -166,7 +167,7 @@ case $target in
         pack_binary $binary
     ;;
     linux)
-        binary=dbdeployer-${version}${docs_tag}.linux
+        binary=build/dbdeployer-${version}${docs_tag}.linux
         build_binary $binary linux amd64
         pack_binary $binary
     ;;
@@ -176,4 +177,4 @@ case $target in
         ;;
 esac
 
-ls -lh dbdeployer-${version}*
+ls -lh build/dbdeployer-${version}*

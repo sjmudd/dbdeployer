@@ -1,0 +1,7 @@
+
+{
+    "master_host" : "127.0.0.1",
+    "master_port" : 3030,
+    "master_user" : "msandbox",
+    "master_password" : "msandbox"
+}
