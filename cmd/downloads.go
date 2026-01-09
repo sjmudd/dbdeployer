@@ -105,7 +105,7 @@ func treeRemoteTarballs(cmd *cobra.Command, args []string) {
 		list := tree[v]
 
 		shown := false
-		list = downloads.SortedTarballList(list, "version")
+		list = downloads.SortedTarballList(list, downloads.SORT_BY_VERSION)
 		size := len(list)
 
 		maxItems := maxItemsPerVersion
@@ -150,7 +150,11 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 	OS, _ := cmd.Flags().GetString(globals.OSLabel)
 	arch, _ := cmd.Flags().GetString(globals.ArchLabel)
 	version, _ := cmd.Flags().GetString(globals.VersionLabel)
-	sortBy, _ := cmd.Flags().GetString(globals.SortByLabel)
+	_sortBy, _ := cmd.Flags().GetString(globals.SortByLabel)
+	sortBy, err := downloads.NewSortCriteria(_sortBy)
+	if err != nil {
+		common.Exitf(1, "%v", err)
+	}
 	OS = strings.ToLower(OS)
 	flavor = strings.ToLower(flavor)
 	showUrl, _ := cmd.Flags().GetBool(globals.ShowUrlLabel)
@@ -193,7 +197,7 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 		tarballList = tarballObj.Tarballs
 	}
 	fmt.Printf("Available tarballs %s (%s)\n", notes, downloads.DefaultTarballRegistry.UpdatedOn)
-	//tarballList := downloads.DefaultTarballRegistry.Tarballs
+
 	tarballList = downloads.SortedTarballList(tarballList, sortBy)
 	for _, tb := range tarballList {
 		var cells []*simpletable.Cell
@@ -555,6 +559,58 @@ func addTarballToCollection(cmd *cobra.Command, args []string) {
 	ops.DisplayTarball(tarballDesc)
 }
 
+// Provide the URL and with that attempt to determine the other
+// parameters automatically so we can add an entry to the json file
+func addUrlToCollection(cmd *cobra.Command, args []string) {
+	var (
+		err        error
+		tarballUrl string
+	)
+
+	flags := cmd.Flags()
+	if len(args) > 0 {
+		tarballUrl = args[0]
+	} else {
+		tarballUrl, err = flags.GetString(globals.UrlLabel)
+		if err != nil {
+			common.Exitf(1, "no url provided, or unable to handle --url flag: %s", err)
+		}
+	}
+
+	basename := path.Base(tarballUrl)
+	details, err := downloads.GetDetailsFromUrl(tarballUrl)
+	if err != nil {
+		common.Exitf(1, "Unable to determine JSON details from URL: %v: %v\n", tarballUrl, err)
+	}
+	fmt.Printf("details: %+v\n", details)
+
+	tarballDesc := downloads.TarballDescription{
+		Name:            basename,
+		Checksum:        details.Checksum,
+		OperatingSystem: details.OS,
+		Arch:            details.Architecture,
+		Url:             tarballUrl,
+		Flavor:          details.Flavour,
+		Minimal:         details.Minimal,
+		Size:            details.Size,
+		Version:         details.Version,
+		ShortVersion:    details.ShortVersion,
+		UpdatedBy:       "addUrltoCollection",
+		Notes:           fmt.Sprintf("added with version %s", common.VersionDef),
+		DateAdded:       time.Now().UTC().Format("2006-01-02 15:04"),
+	}
+
+	var tarballCollection = downloads.DefaultTarballRegistry
+	tarballCollection.Tarballs = append(tarballCollection.Tarballs, tarballDesc)
+
+	err = downloads.WriteTarballFileInfo(tarballCollection)
+	if err != nil {
+		common.Exitf(1, "error writing tarball list: %s", err)
+	}
+	fmt.Printf("Tarball below added to %s\n", downloads.TarballFileRegistry)
+	ops.DisplayTarball(tarballDesc)
+}
+
 func addTarballToCollectionFromStdin(cmd *cobra.Command, args []string) {
 	var err error
 	var tarballCollection = downloads.DefaultTarballRegistry
@@ -753,6 +809,14 @@ var downloadsAddStdinCmd = &cobra.Command{
 	Run: addTarballToCollectionFromStdin,
 }
 
+var downloadsAddUrlCmd = &cobra.Command{
+	Use:   "add-url ",
+	Short: "Adds a URL containing a tarball to the list of tarballs",
+	Long:  ``,
+
+	Run: addUrlToCollection,
+}
+
 var downloadsCmd = &cobra.Command{
 	Use:   "downloads",
 	Short: "Manages remote tarballs",
@@ -786,6 +850,7 @@ func init() {
 	downloadsCmd.AddCommand(downloadsAddCmd)
 	downloadsCmd.AddCommand(downloadsAddRemoteCmd)
 	downloadsCmd.AddCommand(downloadsAddStdinCmd)
+	downloadsCmd.AddCommand(downloadsAddUrlCmd)
 	downloadsCmd.AddCommand(downloadsDeleteCmd)
 	downloadsCmd.AddCommand(downloadsTreeCmd)
 

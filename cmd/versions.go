@@ -46,7 +46,7 @@ func showVersions(cmd *cobra.Command, args []string) {
 var versionsCmd = &cobra.Command{
 	Use:     "versions",
 	Aliases: []string{"available"},
-	Short:   "List available versions",
+	Short:   "List versions downloaded locally",
 	Long:    ``,
 	Run:     showVersions,
 }

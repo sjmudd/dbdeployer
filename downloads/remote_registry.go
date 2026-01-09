@@ -35,6 +35,39 @@ import (
 	"golang.org/x/text/language"
 )
 
+// SortCriteria is the name of method to sort TarballDescriptions
+type SortCriteria string
+type SortCriteriaMap map[SortCriteria]struct{}
+
+const (
+	SORT_BY_ALL_FIELDS SortCriteria = "full"
+	SORT_BY_DATE       SortCriteria = "date"
+	SORT_BY_NAME       SortCriteria = "name"
+	SORT_BY_SHORT_NAME SortCriteria = "short"
+	SORT_BY_VERSION    SortCriteria = "version"
+)
+
+var SortCriteriaValues SortCriteriaMap = SortCriteriaMap{
+	SORT_BY_ALL_FIELDS: struct{}{},
+	SORT_BY_DATE:       struct{}{},
+	SORT_BY_NAME:       struct{}{},
+	SORT_BY_SHORT_NAME: struct{}{},
+	SORT_BY_VERSION:    struct{}{},
+}
+
+// return a SortCriteria if the provided label is valid, if not an error
+func NewSortCriteria(label string) (SortCriteria, error) {
+	if _, ok := SortCriteriaValues[SortCriteria(label)]; !ok {
+		var keys []string
+		for key := range SortCriteriaValues {
+			keys = append(keys, string(key))
+		}
+		return SortCriteria(""), fmt.Errorf("invalid SortCriteria: %v. Expected one of: %v", label, strings.Join(keys, ", "))
+	}
+
+	return SortCriteria(label), nil
+}
+
 type TarballDescription struct {
 	Name            string `json:"name"`
 	Checksum        string `json:"checksum,omitempty"`
@@ -51,10 +84,60 @@ type TarballDescription struct {
 	DateAdded       string `json:"date_added,omitempty"`
 }
 
+type TarballDescriptionByAll []TarballDescription
 type TarballDescriptionByName []TarballDescription
 type TarballDescriptionByDate []TarballDescription
 type TarballDescriptionByVersion []TarballDescription
 type TarballDescriptionByShortVersion []TarballDescription
+
+// return true if v1 < v2 (version strings)
+func versionLess(v1, v2 string) bool {
+	v1List, _ := common.VersionToList(v1)
+	v2List, _ := common.VersionToList(v2)
+	greater, _ := common.GreaterOrEqualVersionList(v1List, v2List)
+	return !greater
+}
+
+// Fuller sort based on important fields:
+// - flavor, version, os, arch, name
+func (tb TarballDescriptionByAll) Less(i, j int) bool {
+	if tb[i].Flavor < tb[j].Flavor {
+		return true
+	}
+	if tb[i].Flavor > tb[j].Flavor {
+		return false
+	}
+	if versionLess(tb[i].Version, tb[j].Version) {
+		return true
+	}
+	if versionLess(tb[j].Version, tb[i].Version) {
+		return false
+	}
+	if tb[i].OperatingSystem < tb[j].OperatingSystem {
+		return true
+	}
+	if tb[j].OperatingSystem < tb[i].OperatingSystem {
+		return false
+	}
+	if tb[i].Arch < tb[j].Arch {
+		return true
+	}
+	if tb[j].Arch < tb[i].Arch {
+		return false
+	}
+	if tb[i].Name < tb[j].Name {
+		return true
+	}
+	return false
+}
+
+func (tb TarballDescriptionByAll) Len() int {
+	return len(tb)
+}
+
+func (tb TarballDescriptionByAll) Swap(i, j int) {
+	tb[i], tb[j] = tb[j], tb[i]
+}
 
 func (tb TarballDescriptionByDate) Less(i, j int) bool {
 	dateI, errI := dateparse.ParseAny(tb[i].DateAdded)
@@ -94,10 +177,7 @@ func (tb TarballDescriptionByVersion) Swap(i, j int) {
 
 }
 func (tb TarballDescriptionByVersion) Less(i, j int) bool {
-	iVersionList, _ := common.VersionToList(tb[i].Version)
-	jVersionList, _ := common.VersionToList(tb[j].Version)
-	greater, _ := common.GreaterOrEqualVersionList(iVersionList, jVersionList)
-	return !greater
+	return versionLess(tb[i].Version, tb[j].Version)
 }
 
 func (tb TarballDescriptionByShortVersion) Len() int {
@@ -110,10 +190,7 @@ func (tb TarballDescriptionByShortVersion) Swap(i, j int) {
 }
 
 func (tb TarballDescriptionByShortVersion) Less(i, j int) bool {
-	iVersionList, _ := common.VersionToList(tb[i].ShortVersion)
-	jVersionList, _ := common.VersionToList(tb[j].ShortVersion)
-	greater, _ := common.GreaterOrEqualVersionList(iVersionList, jVersionList)
-	return !greater
+	return versionLess(tb[i].ShortVersion, tb[j].ShortVersion)
 }
 
 type TarballCollection struct {
@@ -122,24 +199,26 @@ type TarballCollection struct {
 	Tarballs          []TarballDescription
 }
 
-func SortedTarballList(tbl []TarballDescription, ByField string) []TarballDescription {
-	switch ByField {
-	case "version":
+func SortedTarballList(tbl []TarballDescription, criteria SortCriteria) []TarballDescription {
+	switch criteria {
+	case SORT_BY_VERSION:
 		sort.Stable(TarballDescriptionByVersion(tbl))
-	case "short":
+	case SORT_BY_SHORT_NAME:
 		sort.Stable(TarballDescriptionByShortVersion(tbl))
-	case "date":
+	case SORT_BY_DATE:
 		sort.Stable(TarballDescriptionByDate(tbl))
-	case "name":
+	case SORT_BY_NAME:
 		sort.Stable(TarballDescriptionByName(tbl))
+	case SORT_BY_ALL_FIELDS:
+		sort.Stable(TarballDescriptionByAll(tbl))
 	default:
-		sort.Stable(TarballDescriptionByName(tbl))
+		sort.Stable(TarballDescriptionByAll(tbl))
 	}
 	return tbl
 }
 
 func TarballTree(tbl []TarballDescription) map[string][]TarballDescription {
-	tbl = SortedTarballList(tbl, "short")
+	tbl = SortedTarballList(tbl, SORT_BY_SHORT_NAME)
 
 	var tarballTree = make(map[string][]TarballDescription)
 	for _, tb := range tbl {
@@ -421,6 +500,10 @@ func WriteTarballFileInfo(collection TarballCollection) error {
 	if err != nil {
 		return fmt.Errorf("[write tarball file info] tarball list check failed : %s", err)
 	}
+
+	// sort collection so it is always in a consistent order
+	collection.Tarballs = SortedTarballList(collection.Tarballs, SORT_BY_ALL_FIELDS)
+
 	text, err := json.MarshalIndent(collection, " ", " ")
 	if err != nil {
 		return err
@@ -536,6 +619,7 @@ func GetTarballInfo(fileName string, description TarballDescription) (TarballDes
 	return description, nil
 }
 
+// checkRemoteUrl returns the size of a given remoteUrl or returns an error
 func checkRemoteUrl(remoteUrl string) (int64, error) {
 	// #nosec G107
 	resp, err := http.Get(remoteUrl)
@@ -561,6 +645,9 @@ func checkRemoteUrl(remoteUrl string) (int64, error) {
 	return size, nil
 }
 
+// CheckTarballList checks a list of tarballs returning an error
+// if there are duplicate names or OS+arch+Flavor+Version+Minimal
+// combinations
 func CheckTarballList(tarballList []TarballDescription) error {
 	uniqueNames := make(map[string]bool)
 	uniqueCombinations := make(map[string]bool)
@@ -577,7 +664,7 @@ func CheckTarballList(tarballList []TarballDescription) error {
 		// Makes sure that we don't have duplicate combinations of OS+arch+Flavor+Version+Minimal in the list
 		_, seen = uniqueCombinations[key]
 		if seen {
-			return fmt.Errorf("tarball with OS %s-%s, flavor %s, version %s, and minimal %v listed more than once",
+			return fmt.Errorf("tarball with OS %s-%s, flavor %s, version %s and minimal %v listed more than once",
 				tb.OperatingSystem, tb.Arch, tb.Flavor, tb.Version, tb.Minimal)
 		}
 		uniqueCombinations[key] = true
